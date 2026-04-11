@@ -4,6 +4,7 @@
 #include <QGraphicsItem>
 #include <QString>
 #include <QList>
+
 class FlowConnection;
 
 class FlowNode : public QGraphicsItem
@@ -31,6 +32,12 @@ public:
     // returns scene-space positions of input/output ports
     virtual QPointF inputPort()  const;
     virtual QPointF outputPort() const;
+
+    // how many outgoing connections are allowed
+    virtual int maxOutputConnections() const { return 1; }
+
+    // current outgoing connection count
+    int outputConnectionCount() const;
 
     // track connections for graph traversal
     void addConnection(FlowConnection *conn);

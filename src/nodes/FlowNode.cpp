@@ -36,6 +36,16 @@ QPointF FlowNode::outputPort() const
     return mapToScene(QPointF(nodeRect().center().x(), nodeRect().bottom()));
 }
 
+int FlowNode::outputConnectionCount() const{
+    int count = 0;
+    for(FlowConnection *conn : m_connections){
+        if(conn->fromNode() ==  this){
+            ++count;
+        }
+    }
+    return count;
+}
+
 void FlowNode::addConnection(FlowConnection *conn)
 {
     if (!m_connections.contains(conn)){

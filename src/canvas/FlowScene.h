@@ -2,7 +2,11 @@
 #define _FLOW_SCENE_H_
 
 #include <QGraphicsScene>
+#include <QGraphicsPathItem>
 #include "FlowNode.h"
+
+class FlowConnection;
+class DecisionNode;
 
 class FlowScene : public QGraphicsScene
 {
@@ -18,12 +22,31 @@ public:
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private:
     FlowNode* createNode(FlowNode::NodeType type, const QPointF &pos);
 
+    // returns node + exact port position if click is near any output port
+    struct PortHit{
+        FlowNode *node = nullptr;
+        QPointF portPos;
+        bool isYes = false;
+    };
+    PortHit outputPortAt(const QPointF &scenePos);
+    FlowNode* inputPortAt(const QPointF &scenePos);
+
+    // placement
     bool m_placing = false;
     FlowNode::NodeType m_pendingType;
+
+    // connection dragginmg
+    bool m_connecting = false;
+    FlowNode *m_connFrom = nullptr;
+    QPointF m_connFromPos;
+    QGraphicsPathItem *m_tempLine = nullptr;
 };
 
 #endif

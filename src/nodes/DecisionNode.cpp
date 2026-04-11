@@ -1,4 +1,6 @@
 #include "DecisionNode.h"
+#include "FlowConnection.h"
+
 #include <QPainter>
 #include <QPen>
 #include <QColor>
@@ -34,4 +36,35 @@ void DecisionNode::paintShape(QPainter *painter, bool selected){
     painter->setBrush(fill);
     painter->setPen(QPen(border, selected ? 2.5 : 1.5));
     painter->drawPolygon(diamond);
+}
+
+void DecisionNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
+    // draw the base (shape + label + input + No port)
+    FlowNode::paint(painter, option, widget);
+
+    // draw yes port, right center (green)
+    painter->setBrush(QColor(80, 200, 80));
+    painter->setPen(Qt::NoPen);
+    painter->drawEllipse(
+        QPointF(nodeRect().right(), nodeRect().center().y()),
+        PORT_RADIUS, PORT_RADIUS);
+
+    // Port labels
+    painter->setPen(Qt::white);
+    QFont f = painter->font();
+    f.setPointSize(7);
+    painter->setFont(f);
+    painter->drawText(QPointF(nodeRect().right() + PORT_RADIUS + 2, nodeRect().center().y() + 4), "Yes");
+    painter->drawText(QPointF(nodeRect().center().x() + PORT_RADIUS + 2, nodeRect().bottom() + 12), "No");
+}
+
+QRectF DecisionNode::boundingRect() const
+{
+    // extend right to cover the Yes port
+    return nodeRect().adjusted(
+        -(NODE_WIDTH / 2 + PORT_RADIUS),        // left, left diamond tip
+        -PORT_RADIUS,                            // top
+        NODE_WIDTH / 2 + PORT_RADIUS + 30,      // right, Yes port + "Yes" text
+        PORT_RADIUS + 16                         // bottom, No label below
+    );
 }

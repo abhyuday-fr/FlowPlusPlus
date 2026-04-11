@@ -2,13 +2,14 @@
 #define FLOW_CONNECTION_H
 
 #include <QGraphicsPathItem>
+#include <QPointF>
 
 class FlowNode;
 
 class FlowConnection : public QGraphicsPathItem
 {
 public:
-    explicit FlowConnection(FlowNode *from, FlowNode *to, QGraphicsItem *parent = nullptr);
+    explicit FlowConnection(FlowNode *from, FlowNode *to, const QPointF &startPortPos ,QGraphicsItem *parent = nullptr);
     ~FlowConnection() override;
 
     FlowNode *fromNode() const { return m_from; }
@@ -20,6 +21,7 @@ public:
 private:
     FlowNode *m_from;
     FlowNode *m_to;
+    bool m_fromYesPort;
 };
 
 #endif
