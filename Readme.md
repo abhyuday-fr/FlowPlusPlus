@@ -38,7 +38,7 @@ cmake --build build
 - [x] Chapter 1 — Project setup, canvas window, toolbar
 - [x] Chapter 2 — FlowNode base class, FlowConnection
 - [x] Chapter 3 — Concrete nodes (StartStop, Process, Decision, IO)
-- [ ] Chapter 4 — Placing nodes on canvas from toolbar
+- [x] Chapter 4 — Placing nodes on canvas from toolbar
 - [ ] Chapter 5 — Connecting nodes with arrows
 - [ ] Chapter 6 — Value & Environment (variables)
 - [ ] Chapter 7 — Interpreter: walking the graph

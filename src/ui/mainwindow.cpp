@@ -58,15 +58,34 @@ void MainWindow::setupToolBar()
 {
     QToolBar *toolbar = addToolBar("Main");
     toolbar->setMovable(false);
-    toolbar->addAction("▶  Run");
+
+    QAction *runAct = new QAction("▶  Run", this);
+    toolbar->addAction(runAct);
     toolbar->addSeparator();
-    toolbar->addAction("Start/Stop");
-    toolbar->addAction("Process");
-    toolbar->addAction("Decision");
-    toolbar->addAction("I/O");
+
+    QAction *startStopAct = new QAction("Start/Stop", this);
+    QAction *processAct = new QAction("Process", this);
+    QAction *decisionAct = new QAction("Decision", this);
+    QAction *ioAct = new QAction("I/O", this);
+
+    toolbar->addAction(startStopAct);
+    toolbar->addAction(processAct);
+    toolbar->addAction(decisionAct);
+    toolbar->addAction(ioAct);
+
+    connect(startStopAct, &QAction::triggered, this, [this]{armPlacement(FlowNode::NodeType::StartStop, "Start/Stop");});
+    connect(processAct, &QAction::triggered, this, [this]{armPlacement(FlowNode::NodeType::Process, "Process");});
+    connect(decisionAct, &QAction::triggered, this, [this]{armPlacement(FlowNode::NodeType::Decision, "Decision");});
+    connect(ioAct, &QAction::triggered, this, [this]{armPlacement(FlowNode::NodeType::IO, "I/O");});
 }
 
 void MainWindow::setupStatusBar()
 {
     statusBar()->showMessage("FlowPlusPlus ready.");
+}
+
+void MainWindow::armPlacement(FlowNode::NodeType type, const QString &label){
+    m_scene->setPlacementMode(type);
+    m_view->setCursor(Qt::CrossCursor);
+    statusBar()->showMessage("Click on canvas to place: " + label);
 }

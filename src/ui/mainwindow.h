@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "FlowNode.h"
 
 class FlowScene;
 class FlowView;
@@ -17,6 +18,8 @@ private:
     void setupMenuBar();
     void setupStatusBar();
     void setupToolBar();
+
+    void armPlacement(FlowNode::NodeType type, const QString &label);
 
     FlowScene *m_scene;
     FlowView *m_view;

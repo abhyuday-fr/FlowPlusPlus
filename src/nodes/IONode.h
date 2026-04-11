@@ -11,6 +11,8 @@ public:
 
     Mode mode() const{ return m_mode;}
 
+    QRectF boundingRect() const override;
+
 protected:
     void paintShape(QPainter *painter, bool selected) override;
 

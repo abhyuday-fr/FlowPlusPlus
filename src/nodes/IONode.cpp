@@ -31,3 +31,10 @@ void IONode::paintShape(QPainter *painter, bool selected){
     painter->setPen(QPen(border, selected ? 2.5 : 1.5));
     painter->drawPolygon(para);
 }
+
+QRectF IONode::boundingRect() const
+{
+    // extra horizontal padding to account for parallelogram skew
+    constexpr qreal skew = 16.0;
+    return nodeRect().adjusted(-skew, -PORT_RADIUS, skew, PORT_RADIUS);
+}

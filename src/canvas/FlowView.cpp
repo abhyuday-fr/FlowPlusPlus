@@ -1,11 +1,14 @@
 #include "FlowView.h"
+#include "FlowScene.h"
 
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QScrollBar>
+#include <QEnterEvent>
 
-FlowView::FlowView(QGraphicsScene *scene, QWidget *parent)
-    : QGraphicsView(scene, parent)
+FlowView::FlowView(FlowScene *scene, QWidget *parent)
+    : QGraphicsView(scene, parent),
+      m_flowScene(scene)
 {
     setRenderHint(QPainter::Antialiasing);
     setDragMode(QGraphicsView::NoDrag);
@@ -53,4 +56,12 @@ void FlowView::mouseReleaseEvent(QMouseEvent *event)
         setCursor(Qt::ArrowCursor);
     }
     QGraphicsView::mouseReleaseEvent(event);
+}
+
+void FlowView::enterEvent(QEnterEvent *event){
+    if(m_flowScene && m_flowScene->isPlacing())
+        setCursor(Qt::CrossCursor);
+    else
+        setCursor(Qt::ArrowCursor);
+    QGraphicsView::enterEvent(event);
 }
