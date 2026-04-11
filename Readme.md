@@ -1,0 +1,46 @@
+# FlowPlusPlus
+
+A visual flowchart interpreter built with C++ and Qt 6, following the
+structure of [Crafting Interpreters](https://craftinginterpreters.com/)
+by Robert Nystrom.
+
+## Concept
+
+Instead of typing code, you build programs visually using flowchart nodes
+connected by arrows. FlowPlusPlus walks the graph and executes the logic.
+
+## Node Types
+
+| Shape | Meaning |
+|---|---|
+| Rounded rectangle | Start / Stop |
+| Rectangle | Process (assignment, expression) |
+| Diamond | Decision (if/else branch) |
+| Parallelogram | Input / Output |
+
+## Tech Stack
+
+- **C++17**
+- **Qt 6.5+** (Widgets, QGraphicsScene)
+- **CMake + Ninja**
+- Developed on Fedora Linux with Qt Creator
+
+## Build
+
+```bash
+cmake -B build -G Ninja
+cmake --build build
+./build/FlowPlusPlus
+```
+
+## Progress (Crafting Interpreters parallel)
+
+- [x] Chapter 1 — Project setup, canvas window, toolbar
+- [x] Chapter 2 — FlowNode base class, FlowConnection
+- [ ] Chapter 3 — Concrete nodes (StartStop, Process, Decision, IO)
+- [ ] Chapter 4 — Placing nodes on canvas from toolbar
+- [ ] Chapter 5 — Connecting nodes with arrows
+- [ ] Chapter 6 — Value & Environment (variables)
+- [ ] Chapter 7 — Interpreter: walking the graph
+- [ ] Chapter 8 — Control flow (Decision node branching)
+- [ ] Chapter 9 — I/O nodes (print, read input)

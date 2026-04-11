@@ -1,0 +1,38 @@
+# Qt / CMake build artifacts
+build/
+build-*/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Qt Creator project files (machine-specific)
+*.user
+*.user.*
+*.pro.user
+*.qbs.user
+.qmake.stash
+
+# Compiled output
+*.o
+*.a
+*.so
+*.exe
+moc_*
+qrc_*
+ui_*
+
+# Qt deploy scripts
+deploy_script*
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
