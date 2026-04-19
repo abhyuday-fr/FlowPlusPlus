@@ -21,9 +21,13 @@ FlowScene::FlowScene(QObject *parent)
     setBackgroundBrush(QColor(30, 30, 30)); // dark canvas
 }
 
-void  FlowScene::setPlacementMode(FlowNode::NodeType type){
+void  FlowScene::setPlacementMode(FlowNode::NodeType type,
+                                 StartStopNode::Mode ssMode,
+                                 bool ioInput){
     m_placing = true;
     m_pendingType = type;
+    m_pendingSSMode = ssMode;
+    m_pendingIOInput = ioInput;
 }
 
 void FlowScene::clearPlacementMode(){
@@ -61,8 +65,19 @@ FlowNode* FlowScene::inputPortAt(const QPointF &scenePos){
         FlowNode *node = dynamic_cast<FlowNode*>(item);
         if (!node) continue;
 
-        if (dist(scenePos, node->inputPort()) <= PORT_HIT_RADIUS)
-            return node;
+        if (dist(scenePos, node->inputPort()) <= PORT_HIT_RADIUS){
+            // count existing incoming connections
+            int incoming = 0;
+            for(FlowConnection *conn : node->connections()){
+                if(conn->toNode() == node){
+                    ++incoming;
+                }
+            }
+
+            if(incoming < node->maxInputConnections())
+                return node;
+        }
+
     }
     return nullptr;
 }
@@ -160,6 +175,7 @@ void FlowScene::keyPressEvent(QKeyEvent *event){
                 // copy list, removing modifies it
                 QList<FlowConnection*> conns = node->connections();
                 for (FlowConnection *conn : conns) {
+                    conn->detach();
                     removeItem(conn);
                     delete conn;
                 }
@@ -182,7 +198,7 @@ FlowNode* FlowScene::createNode(FlowNode::NodeType type, const QPointF &pos){
 
     switch(type){
     case FlowNode::NodeType::StartStop:
-        node = new StartStopNode(StartStopNode::Mode::Start);
+        node = new StartStopNode(m_pendingSSMode);
         break;
     case FlowNode::NodeType::Process:
         node = new ProcessNode();
@@ -191,7 +207,7 @@ FlowNode* FlowScene::createNode(FlowNode::NodeType type, const QPointF &pos){
         node = new DecisionNode();
         break;
     case FlowNode::NodeType::IO:
-        node = new IONode(IONode::Mode::Output);
+        node = new IONode(m_pendingIOInput ? IONode::Mode::Input : IONode::Mode::Output);
         break;
     }
 
@@ -201,4 +217,32 @@ FlowNode* FlowScene::createNode(FlowNode::NodeType type, const QPointF &pos){
     }
 
     return node;
+}
+
+void FlowScene::clearAll(){
+    // first detach and delete all connections
+    QList<FlowConnection*> conns;
+    for(QGraphicsItem *item : items()){
+        if(FlowConnection *conn = dynamic_cast<FlowConnection*>(item))
+            conns.append(conn);
+    }
+    
+    for(FlowConnection *conn : conns){
+        conn->detach();
+        removeItem(conn);
+        delete conn;
+    }
+    
+    // then delete all nodes
+    QList<FlowNode*> nodes;
+    for(QGraphicsItem *item : items()){
+        if(FlowNode *node = dynamic_cast<FlowNode*>(item)){
+            nodes.append(node);
+        }
+    }
+
+    for(FlowNode *node : nodes){
+        removeItem(node);
+        delete node;
+    }
 }

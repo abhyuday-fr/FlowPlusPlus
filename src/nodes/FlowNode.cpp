@@ -110,9 +110,12 @@ void FlowNode::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void FlowNode::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
+    // use the event's widget as parent to avoid nullptr parent crash
+    QWidget *parentWidget = event->widget();
+
     // double-click to rename, like editing a variable name
     bool ok;
-    QString text = QInputDialog::getText(nullptr, "Edit Node Label", "Enter Label:", QLineEdit::Normal, m_label, &ok);
+    QString text = QInputDialog::getText(parentWidget, "Edit Node Label", "Enter Label:", QLineEdit::Normal, m_label, &ok);
     if (ok && !text.isEmpty())
         setLabel(text);
 

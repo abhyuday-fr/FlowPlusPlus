@@ -4,6 +4,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsPathItem>
 #include "FlowNode.h"
+#include "StartStopNode.h"
+#include "IONode.h"
 
 class FlowConnection;
 class DecisionNode;
@@ -16,9 +18,13 @@ public:
     explicit FlowScene(QObject *parent = nullptr);
 
     // called by toolbar buttons to arm a node type for placement
-    void setPlacementMode(FlowNode::NodeType type);
+    void setPlacementMode(FlowNode::NodeType type,
+                          StartStopNode::Mode ssMode = StartStopNode::Mode::Start,
+                          bool ioInput = false);
     void clearPlacementMode();
     bool isPlacing() const{ return m_placing;}
+
+    void clearAll();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -47,6 +53,9 @@ private:
     FlowNode *m_connFrom = nullptr;
     QPointF m_connFromPos;
     QGraphicsPathItem *m_tempLine = nullptr;
+
+    StartStopNode::Mode m_pendingSSMode = StartStopNode::Mode::Start;
+    bool m_pendingIOInput = false;
 };
 
 #endif

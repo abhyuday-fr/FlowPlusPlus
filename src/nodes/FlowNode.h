@@ -36,6 +36,9 @@ public:
     // how many outgoing connections are allowed
     virtual int maxOutputConnections() const { return 1; }
 
+    // max input connections
+    virtual int maxInputConnections() const { return 99; } // unlimited by default
+
     // current outgoing connection count
     int outputConnectionCount() const;
 

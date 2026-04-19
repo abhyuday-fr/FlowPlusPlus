@@ -21,3 +21,37 @@ void StartStopNode::paintShape(QPainter *painter, bool selected){
     // pill/stadium shape (fully rounded ends)
     painter->drawRoundedRect(nodeRect(), NODE_HEIGHT / 2, NODE_HEIGHT / 2);
 }
+
+void StartStopNode::paint(QPainter *painter,
+                          const QStyleOptionGraphicsItem *option,
+                          QWidget *widget){
+    // draw shape + label
+    bool sel = isSelected();
+    paintShape(painter, sel);
+
+    painter->setPen(Qt::white);
+    QFont f = painter->font();
+    f.setPointSize(9);
+    painter->setFont(f);
+    painter->drawText(nodeRect(), Qt::AlignCenter | Qt::TextWordWrap, m_label);
+
+    // start : only ouput port
+    // stop : only input port
+    painter->setPen(Qt::NoPen);
+
+    if(m_mode == Mode::Start){
+        painter->setBrush(QColor(220, 80, 80));
+        painter->drawEllipse(
+            QPointF(nodeRect().center().x(), nodeRect().bottom()),
+            PORT_RADIUS, PORT_RADIUS);
+    }
+    else{
+        painter->setBrush(QColor(100, 180, 255));
+        painter->drawEllipse(
+            QPointF(nodeRect().center().x(), nodeRect().top()),
+            PORT_RADIUS, PORT_RADIUS);
+    }
+
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+}

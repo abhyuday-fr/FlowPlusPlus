@@ -40,7 +40,7 @@ cmake --build build
 - [x] Chapter 3 — Concrete nodes (StartStop, Process, Decision, IO)
 - [x] Chapter 4 — Placing nodes on canvas from toolbar
 - [x] Chapter 5 — Connecting nodes with arrows
-- [ ] Chapter 6 — Value & Environment (variables)
+- [x] Chapter 6 — Value & Environment (variables)
 - [ ] Chapter 7 — Interpreter: walking the graph
 - [ ] Chapter 8 — Control flow (Decision node branching)
 - [ ] Chapter 9 — I/O nodes (print, read input)

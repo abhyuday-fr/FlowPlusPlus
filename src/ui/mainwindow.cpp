@@ -23,7 +23,11 @@ MainWindow::MainWindow(QWidget *parent)
     setupStatusBar();
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow() {
+    // clear scene explicitly before Qt destroys children
+    // this prevents connection destructors from accessing deleted nodes
+    m_scene->clearAll();
+}
 
 void MainWindow::setupMenuBar()
 {
@@ -51,7 +55,8 @@ void MainWindow::setupMenuBar()
     QMenu *runMenu = menuBar()->addMenu("&Run");
     QAction *execAct = new QAction("&Execute Flow", this);
     execAct->setShortcut(QKeySequence("F5"));
-    runMenu->addAction(execAct);
+    connect(quitAct, &QAction::triggered, qApp, &QApplication::quit);
+    fileMenu->addAction(execAct);
 }
 
 void MainWindow::setupToolBar()
@@ -63,20 +68,26 @@ void MainWindow::setupToolBar()
     toolbar->addAction(runAct);
     toolbar->addSeparator();
 
-    QAction *startStopAct = new QAction("Start/Stop", this);
+    QAction *startAct = new QAction("Start", this);
+    QAction *stopAct = new QAction("Stop", this);
     QAction *processAct = new QAction("Process", this);
     QAction *decisionAct = new QAction("Decision", this);
-    QAction *ioAct = new QAction("I/O", this);
+    QAction *inputAct = new QAction("Input", this);
+    QAction *outputAct = new QAction("Output", this);
 
-    toolbar->addAction(startStopAct);
+    toolbar->addAction(startAct);
+    toolbar->addAction(stopAct);
     toolbar->addAction(processAct);
     toolbar->addAction(decisionAct);
-    toolbar->addAction(ioAct);
+    toolbar->addAction(inputAct);
+    toolbar->addAction(outputAct);
 
-    connect(startStopAct, &QAction::triggered, this, [this]{armPlacement(FlowNode::NodeType::StartStop, "Start/Stop");});
+    connect(startAct, &QAction::triggered, this, [this]{ armPlacement(FlowNode::NodeType::StartStop, "Start", StartStopNode::Mode::Start); });
+    connect(stopAct,  &QAction::triggered, this, [this]{ armPlacement(FlowNode::NodeType::StartStop, "Stop", StartStopNode::Mode::Stop); });
     connect(processAct, &QAction::triggered, this, [this]{armPlacement(FlowNode::NodeType::Process, "Process");});
     connect(decisionAct, &QAction::triggered, this, [this]{armPlacement(FlowNode::NodeType::Decision, "Decision");});
-    connect(ioAct, &QAction::triggered, this, [this]{armPlacement(FlowNode::NodeType::IO, "I/O");});
+    connect(inputAct,    &QAction::triggered, this, [this]{ armPlacement(FlowNode::NodeType::IO, "Input", StartStopNode::Mode::Start, true); });
+    connect(outputAct,   &QAction::triggered, this, [this]{ armPlacement(FlowNode::NodeType::IO, "Output", StartStopNode::Mode::Start, false); });
 }
 
 void MainWindow::setupStatusBar()
@@ -84,8 +95,16 @@ void MainWindow::setupStatusBar()
     statusBar()->showMessage("FlowPlusPlus ready.");
 }
 
-void MainWindow::armPlacement(FlowNode::NodeType type, const QString &label){
-    m_scene->setPlacementMode(type);
+void MainWindow::armPlacement(FlowNode::NodeType type, const QString &label, StartStopNode::Mode ssMode, bool ioInput){
+    m_pendingSSMode  = ssMode;
+    m_pendingIOInput = ioInput;
+    m_scene->setPlacementMode(type, ssMode, ioInput);
     m_view->setCursor(Qt::CrossCursor);
     statusBar()->showMessage("Click on canvas to place: " + label);
+}
+
+void MainWindow::runFlow()
+{
+    // chapter 7, will be implemented next
+    statusBar()->showMessage("Run: coming in Chapter 7!");
 }
