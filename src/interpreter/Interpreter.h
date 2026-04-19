@@ -6,6 +6,7 @@
 #include <QString>
 #include <QStringList>
 #include <QSharedPointer>
+#include <QList>
 
 class FlowNode;
 class FlowScene;
@@ -44,9 +45,9 @@ struct Token{
     Value literal; // for number/string tokens
 };
 
-//-------
+//-----------------------------------------------------
 // Lexer: converts the content into tokens (tokenizer)
-//-------
+//-----------------------------------------------------
 
 class Lexer{
 public:
@@ -73,9 +74,9 @@ private:
     Token identifier();
 };
 
-//--------
+//---------------------------------------------------------
 // Parser: converts tokens into AST (Abstract Syntax Tree)
-//---------
+//---------------------------------------------------------
 
 // we represent expressions as a simple recursive structure
 struct Expr{
@@ -154,6 +155,11 @@ private:
     // helpers
     Value evalBinary(const QString &op, const Value &l, const Value &r);
     QString requestInput(const QString &prompt);
+
+    int m_stepLimit = 1000; // prevent infinite loops
+    void setStepLimit(int limit) { m_stepLimit  = limit; }
+
+    QList<FlowNode*> m_errorNodes;
 };
 
 #endif

@@ -51,6 +51,9 @@ public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
+    void setError(bool error) { m_hasError = error; update();}
+    bool haserro() const{ return m_hasError;}
+
 protected:
     // subclasses define their own shape geometry
     virtual QRectF  nodeRect()  const;
@@ -70,6 +73,8 @@ protected:
     static constexpr qreal NODE_WIDTH  = 160.0;
     static constexpr qreal NODE_HEIGHT =  60.0;
     static constexpr qreal PORT_RADIUS =   5.0;
+
+    bool m_hasError = false;
 };
 
 #endif

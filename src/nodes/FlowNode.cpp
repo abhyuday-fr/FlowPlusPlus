@@ -91,6 +91,13 @@ void FlowNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidge
     // draw output port (bottom)
     painter->setBrush(QColor(200, 100, 100));
     painter->drawEllipse(QPointF(nodeRect().center().x(), nodeRect().bottom()),PORT_RADIUS, PORT_RADIUS);
+
+    // highlight error with red outline
+    if(m_hasError){
+        painter->setBrush(Qt::NoBrush);
+        painter->setPen(QPen(QColor(255, 60, 60), 3, Qt::DashLine));
+        painter->drawRect(nodeRect());
+    }
 }
 
 QVariant FlowNode::itemChange(GraphicsItemChange change, const QVariant &value)

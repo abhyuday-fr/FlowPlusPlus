@@ -468,10 +468,13 @@ Value Interpreter::executeNode(FlowNode *node){
         Lexer  lexer(label);
         Parser parser(lexer.tokenize());
         auto   expr = parser.parse();
+        if (!expr) return Value();
         return evaluate(expr);
     } catch (const std::exception &e) {
-        m_output << QString("[Error in '%1': %2]")
-        .arg(node->label(), QString::fromStdString(e.what()));
+        m_output << QString("[Error in '%1': %2]").arg(node->label(),
+                            QString::fromStdString(e.what()));
+        node->setError(true);
+        m_errorNodes.append(node);
         return Value();
     }
 }
@@ -489,6 +492,13 @@ QString Interpreter::requestInput(const QString &prompt){
 //----------------
 
 QStringList Interpreter::run(){
+    // clear previous error highlights
+    for(FlowNode *n : m_errorNodes){
+        n->setError(false);
+        n->update();
+    }
+    m_errorNodes.clear();
+
     m_output.clear();
     m_env->clear();
 
@@ -500,14 +510,20 @@ QStringList Interpreter::run(){
 
     // m_output << "[Debug: Found Start node]";
 
-    int stepLimit = 1000; // prevent infinite loops
     int steps = 0;
 
-    while(current && steps++ < stepLimit){
+    while(current){
         // stop node : work's done.. phew
         StartStopNode *ss = dynamic_cast<StartStopNode*>(current);
         if(ss && ss->mode() == StartStopNode::Mode::Stop){
             // m_output << "[Debug: Reached Stop]";
+            break;
+        }
+
+        if(++steps > m_stepLimit){
+            m_output << QString("[Error: Execution limit of %1 steps reached."
+                                " Possible infinite loop.]").arg(m_stepLimit);
+
             break;
         }
 
@@ -516,21 +532,17 @@ QStringList Interpreter::run(){
         // execute the node
         Value result = executeNode(current);
 
-        // determine next code
+        // determine next code (follow the graph)
         DecisionNode *dn = dynamic_cast<DecisionNode*>(current);
         if(dn){
             bool yes = result.isTruthy();
-            bool dummy = yes;
-            current = nextNode(current, dummy);
+            current = nextNode(current, yes);
         }
         else{
             bool dummy = false;
             current = nextNode(current, dummy);
         }
     }
-
-    if(steps >= stepLimit)
-        m_output << "[Error: Execution limit reached, possible infinite loop]";
 
     return m_output;
 }

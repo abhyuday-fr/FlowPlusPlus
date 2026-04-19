@@ -163,26 +163,37 @@ void FlowScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
 void FlowScene::keyPressEvent(QKeyEvent *event){
     if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace) {
         const QList<QGraphicsItem*> selected = selectedItems();
+
+        QSet<FlowConnection*> connsToDelete;
+        QList<FlowNode*> nodesToDelete;
+
         for (QGraphicsItem *item : selected) {
             // ff a connection, just remove it
             if (FlowConnection *conn = dynamic_cast<FlowConnection*>(item)) {
-                removeItem(conn);
-                delete conn;
-                continue;
+                connsToDelete.insert(conn);
             }
-            // if a node, remove its connections first then the node
             if (FlowNode *node = dynamic_cast<FlowNode*>(item)) {
-                // copy list, removing modifies it
-                QList<FlowConnection*> conns = node->connections();
-                for (FlowConnection *conn : conns) {
-                    conn->detach();
-                    removeItem(conn);
-                    delete conn;
+                nodesToDelete.append(node);
+                // also collect this node's connections
+                for (FlowConnection *conn : node->connections()) {
+                    connsToDelete.insert(conn);
                 }
-                removeItem(node);
-                delete node;
             }
         }
+
+        // delete connections first
+        for(FlowConnection *conn : connsToDelete){
+            conn->detach();
+            removeItem(conn);
+            delete conn;
+        }
+
+        // then delete nodes
+        for(FlowConnection *node : connsToDelete){
+            removeItem(node);
+            delete node;
+        }
+
         event->accept();
         return;
     }
