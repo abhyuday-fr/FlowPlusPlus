@@ -6,6 +6,7 @@
 #include "DecisionNode.h"
 #include "IONode.h"
 
+#include <QGraphicsView>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsPathItem>
 #include <QKeyEvent>
@@ -87,6 +88,10 @@ FlowNode* FlowScene::inputPortAt(const QPointF &scenePos){
 //--------------
 
 void FlowScene::mousePressEvent(QGraphicsSceneMouseEvent *event){
+    // grab keyboard focus so Delete/Backspace work
+    if (!views().isEmpty())
+        views().first()->setFocus();
+
     if(m_placing && event->button() == Qt::LeftButton){
         createNode(m_pendingType, event->scenePos());
         clearPlacementMode();
@@ -160,39 +165,49 @@ void FlowScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
 // Delete Selected Items
 //------------------------
 
-void FlowScene::keyPressEvent(QKeyEvent *event){
+void FlowScene::keyPressEvent(QKeyEvent *event)
+{
     if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace) {
+
         const QList<QGraphicsItem*> selected = selectedItems();
+        if (selected.isEmpty()) {
+            event->accept();
+            return;
+        }
 
         QSet<FlowConnection*> connsToDelete;
-        QList<FlowNode*> nodesToDelete;
+        QList<FlowNode*>      nodesToDelete;
 
         for (QGraphicsItem *item : selected) {
-            // ff a connection, just remove it
-            if (FlowConnection *conn = dynamic_cast<FlowConnection*>(item)) {
+            if (FlowConnection *conn = dynamic_cast<FlowConnection*>(item))
                 connsToDelete.insert(conn);
-            }
+
             if (FlowNode *node = dynamic_cast<FlowNode*>(item)) {
                 nodesToDelete.append(node);
-                // also collect this node's connections
-                for (FlowConnection *conn : node->connections()) {
+                for (FlowConnection *conn : node->connections())
                     connsToDelete.insert(conn);
-                }
             }
         }
 
-        // delete connections first
-        for(FlowConnection *conn : connsToDelete){
+        // Delete connections first
+        for (FlowConnection *conn : connsToDelete) {
+            if (!conn) continue;
             conn->detach();
             removeItem(conn);
             delete conn;
         }
 
-        // then delete nodes
-        for(FlowConnection *node : connsToDelete){
+        // Then delete nodes
+        for (FlowNode *node : nodesToDelete) {
+            if (!node) continue;
             removeItem(node);
             delete node;
         }
+
+        // Refocus, only if view still exists
+        QGraphicsView *v = views().isEmpty() ? nullptr : views().first();
+        if (v && v->isVisible())
+            v->setFocus();
 
         event->accept();
         return;

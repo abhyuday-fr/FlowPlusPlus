@@ -14,22 +14,28 @@ FlowView::FlowView(FlowScene *scene, QWidget *parent)
     setDragMode(QGraphicsView::NoDrag);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setResizeAnchor(QGraphicsView::AnchorUnderMouse);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setFrameShape(QFrame::NoFrame);
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 void FlowView::wheelEvent(QWheelEvent *event)
 {
-    const double scaleFactor = 1.15;
-    if (event->angleDelta().y() > 0)
-        scale(scaleFactor, scaleFactor);
-    else
-        scale(1.0 / scaleFactor, 1.0 / scaleFactor);
+    if (event->modifiers() & Qt::ControlModifier) {
+        // Ctrl+Scroll = zoom
+        if (event->angleDelta().y() > 0) zoomIn();
+        else zoomOut();
+        event->accept();
+        return;
+    }
+    // Normal scroll = pan vertically
+    QGraphicsView::wheelEvent(event);
 }
 
 void FlowView::mousePressEvent(QMouseEvent *event)
 {
+    setFocus(); // clicking anywhere on the canvass reclaims focus
     if (event->button() == Qt::MiddleButton) {
         m_panning = true;
         m_lastPanPoint = event->pos();
@@ -64,4 +70,21 @@ void FlowView::enterEvent(QEnterEvent *event){
     else
         setCursor(Qt::ArrowCursor);
     QGraphicsView::enterEvent(event);
+}
+
+void FlowView::zoomIn(){
+    if (m_zoomLevel >= MAX_ZOOM) return;
+    m_zoomLevel = qMin(m_zoomLevel * 1.2, MAX_ZOOM);
+    setTransform(QTransform::fromScale(m_zoomLevel, m_zoomLevel));
+}
+
+void FlowView::zoomOut(){
+    if (m_zoomLevel <= MIN_ZOOM) return;
+    m_zoomLevel = qMax(m_zoomLevel / 1.2, MIN_ZOOM);
+    setTransform(QTransform::fromScale(m_zoomLevel, m_zoomLevel));
+}
+
+void FlowView::zoomReset(){
+    m_zoomLevel = 1.0;
+    setTransform(QTransform::fromScale(1.0, 1.0));
 }

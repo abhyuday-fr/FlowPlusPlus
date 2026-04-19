@@ -12,6 +12,7 @@
 #include <QVBoxLayout>
 #include <QTextEdit>
 #include <QPushButton>
+#include <QKeyEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -60,9 +61,7 @@ void MainWindow::setupMenuBar()
     QMenu *runMenu = menuBar()->addMenu("&Run");
     QAction *execAct = new QAction("&Execute Flow", this);
     execAct->setShortcut(QKeySequence("F5"));
-    connect(quitAct, &QAction::triggered, qApp, &QApplication::quit);
     runMenu->addAction(execAct);
-
     connect(execAct, &QAction::triggered, this, &MainWindow::runFlow);
 }
 
@@ -97,6 +96,28 @@ void MainWindow::setupToolBar()
     connect(outputAct,   &QAction::triggered, this, [this]{ armPlacement(FlowNode::NodeType::IO, "Output", StartStopNode::Mode::Start, false); });
 
     connect(runAct, &QAction::triggered, this, &MainWindow::runFlow);
+
+    toolbar->addSeparator();
+
+    QAction *zoomInAct  = new QAction("🔍+", this);
+    QAction *zoomOutAct = new QAction("🔍-", this);
+    QAction *zoomFitAct = new QAction("⊡ Fit", this);
+
+    zoomInAct->setShortcut(QKeySequence("Ctrl++"));
+    zoomOutAct->setShortcut(QKeySequence("Ctrl+-"));
+    zoomFitAct->setShortcut(QKeySequence("Ctrl+0"));
+
+    zoomInAct->setToolTip("Zoom In (Ctrl++)");
+    zoomOutAct->setToolTip("Zoom Out (Ctrl+-)");
+    zoomFitAct->setToolTip("Fit to window (Ctrl+0)");
+
+    toolbar->addAction(zoomInAct);
+    toolbar->addAction(zoomOutAct);
+    toolbar->addAction(zoomFitAct);
+
+    connect(zoomInAct,  &QAction::triggered, m_view, &FlowView::zoomIn);
+    connect(zoomOutAct, &QAction::triggered, m_view, &FlowView::zoomOut);
+    connect(zoomFitAct, &QAction::triggered, this,   &MainWindow::fitToContents);
 }
 
 void MainWindow::setupStatusBar()
@@ -143,4 +164,11 @@ void MainWindow::runFlow()
     layout->addWidget(closeBtn);
 
     dlg->exec();
+}
+
+void MainWindow::fitToContents(){
+    QRectF bounds = m_scene->itemsBoundingRect();
+    if (bounds.isEmpty()) return;
+    bounds.adjust(-40, -40, 40, 40); // padding
+    m_view->fitInView(bounds, Qt::KeepAspectRatio);
 }

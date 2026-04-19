@@ -14,6 +14,13 @@ public:
 
     FlowScene *flowScene() const{return m_flowScene;}
 
+    void zoomIn();
+    void zoomOut();
+    void zoomReset();
+
+    static constexpr double MIN_ZOOM = 0.1;
+    static constexpr double MAX_ZOOM = 4.0;
+
 protected:
     void wheelEvent(QWheelEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -27,6 +34,8 @@ private:
     FlowScene *m_flowScene;
     bool   m_panning = false;
     QPoint m_lastPanPoint;
+
+    double m_zoomLevel = 1.0;
 };
 
 #endif

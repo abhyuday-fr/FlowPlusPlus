@@ -15,12 +15,12 @@ public:
     FlowNode *fromNode() const { return m_from; }
     FlowNode *toNode()   const { return m_to;   }
 
-    void detach() { m_from = nullptr; m_to = nullptr; }
-
     // called whenever a connected node moves
     void updatePath();
 
     bool isYesConnection() const { return m_fromYesPort; }
+
+    void detach();
 
 private:
     FlowNode *m_from;

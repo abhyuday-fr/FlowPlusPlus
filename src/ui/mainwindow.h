@@ -16,6 +16,8 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void fitToContents();
+
 private:
     void setupMenuBar();
     void setupStatusBar();
