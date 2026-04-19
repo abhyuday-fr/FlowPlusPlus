@@ -1,12 +1,17 @@
 #include "mainwindow.h"
 #include "FlowScene.h"
 #include "FlowView.h"
+#include "Interpreter.h"
 
 #include <QMenuBar>
 #include <QToolBar>
 #include <QStatusBar>
 #include <QAction>
 #include <QApplication>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QTextEdit>
+#include <QPushButton>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -105,6 +110,32 @@ void MainWindow::armPlacement(FlowNode::NodeType type, const QString &label, Sta
 
 void MainWindow::runFlow()
 {
-    // chapter 7, will be implemented next
-    statusBar()->showMessage("Run: coming in Chapter 7!");
+    Interpreter interp(m_scene);
+    QStringList output = interp.run();
+
+    // show output in a popup dialog
+    QDialog *dlg = new QDialog(this);
+    dlg->setWindowTitle("FlowPlusPlus Output");
+    dlg->resize(480, 320);
+
+    QVBoxLayout *layout = new QVBoxLayout(dlg);
+
+    QTextEdit *textEdit = new QTextEdit(dlg);
+    textEdit->setReadOnly(true);
+    textEdit->setFont(QFont("Monospace", 10));
+    textEdit->setStyleSheet(
+        "backgorund-color: #1e1e1e; color: #d4d4d4; border: none;");
+
+    if(output.isEmpty())
+        textEdit->setPlainText("(no output)");
+    else
+        textEdit->setPlainText(output.join("\n"));
+
+    QPushButton *closeBtn = new QPushButton("Close", dlg);
+    connect(closeBtn, &QPushButton::clicked, dlg, &QDialog::accept);
+
+    layout->addWidget(textEdit);
+    layout->addWidget(closeBtn);
+
+    dlg->exec();
 }

@@ -20,6 +20,8 @@ public:
     // called whenever a connected node moves
     void updatePath();
 
+    bool isYesConnection() const { return m_fromYesPort; }
+
 private:
     FlowNode *m_from;
     FlowNode *m_to;

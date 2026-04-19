@@ -59,7 +59,7 @@ private:
     int m_current = 0;
 
     bool isAtEnd() const { return m_current >= m_source.size(); }
-    QChar advance() { return m_source[m_curent++]; }
+    QChar advance() { return m_source[m_current++]; }
     QChar peek() const { return isAtEnd() ? '\0' : m_source[m_current]; }
     QChar peekNext() const{
         return (m_current + 1 >= m_source.size()) ? '\0' : m_source[m_current + 1];
@@ -109,7 +109,7 @@ private:
 
     Token peek() const { return m_tokens[m_current]; }
     Token previous() const { return m_tokens[m_current - 1]; }
-    bool isAtEnd() const { return peek(),type == Token::Type::Eof; }
+    bool isAtEnd() const { return peek().type == Token::Type::Eof; }
     Token advance();
     bool  check(Token::Type type) const;
     bool  match(std::initializer_list<Token::Type> types);
@@ -153,7 +153,7 @@ private:
 
     // helpers
     Value evalBinary(const QString &op, const Value &l, const Value &r);
-    QString requesInput(const QString &prompt);
+    QString requestInput(const QString &prompt);
 };
 
 #endif
