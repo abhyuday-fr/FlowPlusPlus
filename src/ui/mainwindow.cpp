@@ -61,7 +61,9 @@ void MainWindow::setupMenuBar()
     QAction *execAct = new QAction("&Execute Flow", this);
     execAct->setShortcut(QKeySequence("F5"));
     connect(quitAct, &QAction::triggered, qApp, &QApplication::quit);
-    fileMenu->addAction(execAct);
+    runMenu->addAction(execAct);
+
+    connect(execAct, &QAction::triggered, this, &MainWindow::runFlow);
 }
 
 void MainWindow::setupToolBar()
@@ -93,6 +95,8 @@ void MainWindow::setupToolBar()
     connect(decisionAct, &QAction::triggered, this, [this]{armPlacement(FlowNode::NodeType::Decision, "Decision");});
     connect(inputAct,    &QAction::triggered, this, [this]{ armPlacement(FlowNode::NodeType::IO, "Input", StartStopNode::Mode::Start, true); });
     connect(outputAct,   &QAction::triggered, this, [this]{ armPlacement(FlowNode::NodeType::IO, "Output", StartStopNode::Mode::Start, false); });
+
+    connect(runAct, &QAction::triggered, this, &MainWindow::runFlow);
 }
 
 void MainWindow::setupStatusBar()
@@ -114,7 +118,8 @@ void MainWindow::runFlow()
     QStringList output = interp.run();
 
     // show output in a popup dialog
-    QDialog *dlg = new QDialog(this);
+    QDialog *dlg = new QDialog(nullptr);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
     dlg->setWindowTitle("FlowPlusPlus Output");
     dlg->resize(480, 320);
 
@@ -124,7 +129,7 @@ void MainWindow::runFlow()
     textEdit->setReadOnly(true);
     textEdit->setFont(QFont("Monospace", 10));
     textEdit->setStyleSheet(
-        "backgorund-color: #1e1e1e; color: #d4d4d4; border: none;");
+        "background-color: #1e1e1e; color: #d4d4d4; border: none;");
 
     if(output.isEmpty())
         textEdit->setPlainText("(no output)");

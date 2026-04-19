@@ -329,7 +329,7 @@ FlowNode* Interpreter::findStartNode(){
     return nullptr;
 }
 
-FlowNode* Interpreter::nextNode(FlowNode *current, bool &isYesbranch){
+FlowNode* Interpreter::nextNode(FlowNode *current, bool &takeYes){
     // for decision nodes we need to pick the right branch
     DecisionNode *dn = dynamic_cast<DecisionNode*>(current);
 
@@ -337,11 +337,13 @@ FlowNode* Interpreter::nextNode(FlowNode *current, bool &isYesbranch){
         if(conn->fromNode() != current) continue;
 
         if(dn){
-            // this connection is on which branch? we stored this in m_fromYesPort
-            if(isYesbranch && conn->isYesConnection())
-                return conn->toNode();
-            if(!isYesbranch && !conn->isYesConnection())
-                return conn->toNode();
+            // decison node, pick Yes or No branch
+            if(takeYes && conn->isYesConnection()) return conn->toNode();
+            if(!takeYes && !conn->isYesConnection()) return conn->toNode();
+        }
+        else{
+            // every other node, jsut follow the single conncection
+            return conn->toNode();
         }
     }
     return nullptr;
@@ -442,6 +444,11 @@ Value Interpreter::evalBinary(const QString &op,const Value  &l, const Value  &r
 }
 
 Value Interpreter::executeNode(FlowNode *node){
+
+    // Start and Stop nodes have no expression to evaluate so skip them
+    StartStopNode *ss = dynamic_cast<StartStopNode*>(node);
+    if(ss) return Value();
+
     QString label = node->label().trimmed();
     if (label.isEmpty()) return Value();
 
@@ -491,14 +498,20 @@ QStringList Interpreter::run(){
         return m_output;
     }
 
+    // m_output << "[Debug: Found Start node]";
+
     int stepLimit = 1000; // prevent infinite loops
     int steps = 0;
 
     while(current && steps++ < stepLimit){
         // stop node : work's done.. phew
         StartStopNode *ss = dynamic_cast<StartStopNode*>(current);
-        if(ss && ss->mode() == StartStopNode::Mode::Stop)
+        if(ss && ss->mode() == StartStopNode::Mode::Stop){
+            // m_output << "[Debug: Reached Stop]";
             break;
+        }
+
+        // m_output << "[Debug: Visiting node: " + current->label() + "]";
 
         // execute the node
         Value result = executeNode(current);

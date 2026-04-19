@@ -17,7 +17,7 @@ public:
     }
 
     int maxInputConnections() const override{
-        return m_mode == Mode::Start ? 0 : 1;
+        return m_mode == Mode::Start ? 0 : 99;
     }
 
 protected:
