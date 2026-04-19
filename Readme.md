@@ -41,6 +41,6 @@ cmake --build build
 - [x] Chapter 4 — Placing nodes on canvas from toolbar
 - [x] Chapter 5 — Connecting nodes with arrows
 - [x] Chapter 6 — Value & Environment (variables)
-- [ ] Chapter 7 — Interpreter: walking the graph
+- [x] Chapter 7 — Interpreter: walking the graph
 - [ ] Chapter 8 — Control flow (Decision node branching)
 - [ ] Chapter 9 — I/O nodes (print, read input)
