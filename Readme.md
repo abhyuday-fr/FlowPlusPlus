@@ -44,3 +44,17 @@ cmake --build build
 - [x] Chapter 7 — Interpreter: walking the graph
 - [x] Chapter 8 — Control flow (Decision node branching)
 - [x] Chapter 9 — I/O nodes (print, read input)
+
+##### can't wait to make a releasable version :)
+
+### next steps to come
+- ✅ Core interpreter
+- ✅ Save/Load
+- ⬜ Minimap
+- ⬜ Multi-select + copy/paste
+- ⬜ Undo/Redo
+- ⬜ Sample .fpp files
+- ⬜ AppImage packaging (Linux)
+- ⬜ Windows installer
+- ⬜ macOS DMG
+- ⬜ GitHub Actions CI/CD
