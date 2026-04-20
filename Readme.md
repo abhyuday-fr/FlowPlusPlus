@@ -43,4 +43,4 @@ cmake --build build
 - [x] Chapter 6 — Value & Environment (variables)
 - [x] Chapter 7 — Interpreter: walking the graph
 - [x] Chapter 8 — Control flow (Decision node branching)
-- [ ] Chapter 9 — I/O nodes (print, read input)
+- [x] Chapter 9 — I/O nodes (print, read input)

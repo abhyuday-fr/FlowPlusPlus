@@ -13,6 +13,12 @@
 #include <QPen>
 #include <cmath>
 
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QFile>
+#include <QIODevice>
+
 static constexpr qreal PORT_HIT_RADIUS = 12.0;
 
 FlowScene::FlowScene(QObject *parent)
@@ -271,4 +277,157 @@ void FlowScene::clearAll(){
         removeItem(node);
         delete node;
     }
+}
+
+// Save
+
+bool FlowScene::saveToFile(const QString &path){
+    // build a stable id for each node
+    QHash<FlowNode*, int> nodeIds;
+    QJsonArray nodesArr;
+    int id = 0;
+
+    for(QGraphicsItem *item : items()){
+        FlowNode *node = dynamic_cast<FlowNode*>(item);
+        if(!node) continue;
+
+        nodeIds[node] = id;
+
+        QJsonObject obj;
+        obj["id"] = id++;
+        obj["label"] = node->label();
+        obj["x"] = node->pos().x();
+        obj["y"] = node->pos().y();
+
+        // type string
+        switch (node->nodeType()) {
+        case FlowNode::NodeType::StartStop: {
+        obj["type"] = QString("StartStop");
+        StartStopNode *ss = dynamic_cast<StartStopNode*>(node);
+        obj["mode"] = (ss && ss->mode() == StartStopNode::Mode::Start) ? QString("Start") : QString("Stop");
+        break;
+        }
+        case FlowNode::NodeType::Process:
+            obj["type"] = QString("Process");
+            break;
+        case FlowNode::NodeType::Decision:
+            obj["type"] = QString("Decision");
+            break;
+        case FlowNode::NodeType::IO: {
+            obj["type"] = QString("IO");
+            IONode *io  = dynamic_cast<IONode*>(node);
+            obj["mode"] = (io && io->mode() == IONode::Mode::Input) ? QString("Input") : QString("Output");
+            break;
+        }
+        }
+
+        nodesArr.append(obj);
+    }
+    // serialize connections
+    QJsonArray connsArr;
+    for(QGraphicsItem *item : items()){
+        FlowConnection *conn = dynamic_cast<FlowConnection*>(item);
+        if(!conn) continue;
+        if(!conn->fromNode() || !conn->toNode()) continue;
+        if (!nodeIds.contains(conn->fromNode())) continue;
+        if (!nodeIds.contains(conn->toNode())) continue;
+
+        QJsonObject obj;
+        obj["from"] = nodeIds[conn->fromNode()];
+        obj["to"] = nodeIds[conn->toNode()];
+        obj["isYes"] = conn->isYesConnection();
+        connsArr.append(obj);
+    }
+
+    QJsonObject root;
+    root["version"] = 1;
+    root["nodes"] = nodesArr;
+    root["connections"] = connsArr;
+
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly))
+        return false;
+
+    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    return true;
+}
+
+// load
+bool FlowScene::loadFromFile(const QString &path){
+    QFile file(path);
+    if(!file.open(QIODevice::ReadOnly))
+        return false;
+
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &err);
+    if(err.error != QJsonParseError::NoError)
+        return false;
+
+    QJsonObject root = doc.object();
+    if (root["version"].toInt() != 1)
+        return false;
+
+    // clear existing canvas
+    clearAll();
+
+    // rebuild nodes
+    QHash<int, FlowNode*> idToNode;
+
+    for (const QJsonValue &val : root["nodes"].toArray()) {
+        QJsonObject obj  = val.toObject();
+        int id = obj["id"].toInt();
+        QString type = obj["type"].toString();
+        QString mode = obj["mode"].toString();
+        QString lbl = obj["label"].toString();
+        qreal x = obj["x"].toDouble();
+        qreal y = obj["y"].toDouble();
+
+        FlowNode *node = nullptr;
+
+        if (type == "StartStop") {
+            auto m = (mode == "Start") ? StartStopNode::Mode::Start : StartStopNode::Mode::Stop;
+            node = new StartStopNode(m);
+        } else if (type == "Process") {
+            node = new ProcessNode();
+        } else if (type == "Decision") {
+            node = new DecisionNode();
+        } else if (type == "IO") {
+            auto m = (mode == "Input") ? IONode::Mode::Input : IONode::Mode::Output;
+            node = new IONode(m);
+        }
+
+        if (!node) continue;
+
+        node->setLabel(lbl);
+        node->setPos(x, y);
+        addItem(node);
+        idToNode[id] = node;
+    }
+
+    // rebuild connections
+    for (const QJsonValue &val : root["connections"].toArray()) {
+        QJsonObject obj   = val.toObject();
+        int fromId = obj["from"].toInt();
+        int toId = obj["to"].toInt();
+        bool isYes  = obj["isYes"].toBool();
+
+        if (!idToNode.contains(fromId)) continue;
+        if (!idToNode.contains(toId))   continue;
+
+        FlowNode *from = idToNode[fromId];
+        FlowNode *to = idToNode[toId];
+
+        // Determine correct port position
+        QPointF portPos;
+        DecisionNode *dn = dynamic_cast<DecisionNode*>(from);
+        if (dn)
+            portPos = isYes ? dn->outputPortYes() : dn->outputPortNo();
+        else
+            portPos = from->outputPort();
+
+        FlowConnection *conn = new FlowConnection(from, to, portPos);
+        addItem(conn);
+    }
+
+    return true;
 }

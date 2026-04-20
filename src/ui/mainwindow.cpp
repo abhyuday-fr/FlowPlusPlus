@@ -14,6 +14,10 @@
 #include <QPushButton>
 #include <QKeyEvent>
 
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QFileInfo>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -27,6 +31,8 @@ MainWindow::MainWindow(QWidget *parent)
     setupMenuBar();
     setupToolBar();
     setupStatusBar();
+
+    updateWindowTitle();
 }
 
 MainWindow::~MainWindow() {
@@ -41,15 +47,23 @@ void MainWindow::setupMenuBar()
 
     QAction *newAct = new QAction("&New", this);
     newAct->setShortcut(QKeySequence::New);
+    connect(newAct, &QAction::triggered, this, &MainWindow::newFile);
     fileMenu->addAction(newAct);
 
     QAction *openAct = new QAction("&Open", this);
     openAct->setShortcut(QKeySequence::Open);
+    connect(openAct, &QAction::triggered, this, &MainWindow::openFile);
     fileMenu->addAction(openAct);
 
     QAction *saveAct = new QAction("&Save", this);
     saveAct->setShortcut(QKeySequence::Save);
+    connect(saveAct, &QAction::triggered, this, &MainWindow::saveFile);
     fileMenu->addAction(saveAct);
+
+    QAction *saveAsAct = new QAction("Save &As...", this);
+    saveAsAct->setShortcut(QKeySequence::SaveAs);
+    connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveFileAs);
+    fileMenu->addAction(saveAsAct);
 
     fileMenu->addSeparator();
 
@@ -171,4 +185,74 @@ void MainWindow::fitToContents(){
     if (bounds.isEmpty()) return;
     bounds.adjust(-40, -40, 40, 40); // padding
     m_view->fitInView(bounds, Qt::KeepAspectRatio);
+}
+
+void MainWindow::newFile(){
+    m_scene->clearAll();
+    m_currentFile.clear();
+    updateWindowTitle();
+    statusBar()->showMessage("New file created.");
+}
+
+void MainWindow::openFile(){
+    QString path = QFileDialog::getOpenFileName(
+        this,
+        "Open FlowPlusPlus File",
+        QString(),
+        "FlowPlusPlus Files (*.fpp);;All Files (*)");
+
+    if (path.isEmpty()) return;
+
+    if (!m_scene->loadFromFile(path)) {
+        QMessageBox::critical(this, "Error", "Failed to open file:\n" + path);
+        return;
+    }
+
+    m_currentFile = path;
+    updateWindowTitle();
+    statusBar()->showMessage("Opened: " + path);
+}
+
+void MainWindow::saveFile(){
+    if (m_currentFile.isEmpty()) {
+        saveFileAs();
+        return;
+    }
+
+    if (!m_scene->saveToFile(m_currentFile)) {
+        QMessageBox::critical(this, "Error", "Failed to save file:\n" + m_currentFile);
+        return;
+    }
+
+    statusBar()->showMessage("Saved: " + m_currentFile);
+}
+
+void MainWindow::saveFileAs(){
+    QString path = QFileDialog::getSaveFileName(
+        this,
+        "Save FlowPlusPlus File",
+        QString(),
+        "FlowPlusPlus Files (*.fpp);;All Files (*)");
+
+    if (path.isEmpty()) return;
+
+    // Auto-append .fpp if missing
+    if (!path.endsWith(".fpp", Qt::CaseInsensitive))
+        path += ".fpp";
+
+    if (!m_scene->saveToFile(path)) {
+        QMessageBox::critical(this, "Error", "Failed to save file:\n" + path);
+        return;
+    }
+
+    m_currentFile = path;
+    updateWindowTitle();
+    statusBar()->showMessage("Saved: " + path);
+}
+
+void MainWindow::updateWindowTitle(){
+    if (m_currentFile.isEmpty())
+        setWindowTitle("FlowPlusPlus — Untitled");
+    else
+        setWindowTitle("FlowPlusPlus — " + QFileInfo(m_currentFile).fileName());
 }

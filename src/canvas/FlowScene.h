@@ -1,6 +1,7 @@
 #ifndef _FLOW_SCENE_H_
 #define _FLOW_SCENE_H_
 
+#include <QString>
 #include <QGraphicsScene>
 #include <QGraphicsPathItem>
 #include "FlowNode.h"
@@ -25,6 +26,9 @@ public:
     bool isPlacing() const{ return m_placing;}
 
     void clearAll();
+
+    bool saveToFile(const QString &path);
+    bool loadFromFile(const QString &path);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

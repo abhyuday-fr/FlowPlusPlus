@@ -36,6 +36,15 @@ private:
     // pending placement state
     StartStopNode::Mode m_pendingSSMode = StartStopNode::Mode::Start;
     bool m_pendingIOInput = false;
+
+    QString m_currentFile; // empty if unsaved
+
+    void newFile();
+    void openFile();
+    void saveFile();
+    void saveFileAs();
+
+    void updateWindowTitle();
 };
 
 #endif // MAINWINDOW_H
