@@ -41,3 +41,9 @@ AppDir/
 build-flatpak/
 .flatpak-builder/
 squashfs-root/
+
+# Website
+website/node_modules/
+website/dist/
+website/dist-ssr/
+website/*.local
