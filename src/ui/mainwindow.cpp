@@ -20,6 +20,7 @@
 #include <QUndoStack>
 #include <QResource>
 #include <QDir>
+#include <QStandardPaths>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -38,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent)
     updateWindowTitle();
 
     m_view->initMiniMap(m_scene);
+
+    m_lastDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 }
 
 MainWindow::~MainWindow() {
@@ -218,7 +221,7 @@ void MainWindow::openFile(){
     QString path = QFileDialog::getOpenFileName(
         this,
         "Open FlowPlusPlus File",
-        QString(),
+        m_lastDir,
         "FlowPlusPlus Files (*.fpp);;All Files (*)");
 
     if (path.isEmpty()) return;
@@ -251,7 +254,7 @@ void MainWindow::saveFileAs(){
     QString path = QFileDialog::getSaveFileName(
         this,
         "Save FlowPlusPlus File",
-        QString(),
+        m_lastDir,
         "FlowPlusPlus Files (*.fpp);;All Files (*)");
 
     if (path.isEmpty()) return;
@@ -265,6 +268,7 @@ void MainWindow::saveFileAs(){
         return;
     }
 
+    m_lastDir = QFileInfo(path).absolutePath(); // remember
     m_currentFile = path;
     updateWindowTitle();
     statusBar()->showMessage("Saved: " + path);
@@ -300,27 +304,27 @@ void MainWindow::setupSamplesMenu(QMenu *fileMenu)
         QString  res = s.resource;
 
         connect(act, &QAction::triggered, this, [this, res] {
-            // copy resource to a temp file then load
-            // (loadFromFile needs a real path, not a Qt resource path)
+            // debug, tells us exactly what's failing
             QFile src(res);
-            if (!src.open(QIODevice::ReadOnly)) return;
+            if (!src.exists()) {
+                QMessageBox::critical(this, "Error",
+                                      "Resource not found: " + res);
+                return;
+            }
+            if (!src.open(QIODevice::ReadOnly)) {
+                QMessageBox::critical(this, "Error",
+                                      "Could not read: " + res);
+                return;
+            }
             QByteArray data = src.readAll();
             src.close();
 
-            // write to temp
-            QString tmp = QDir::temp().filePath("fpp_sample.fpp");
-            QFile out(tmp);
-            if (!out.open(QIODevice::WriteOnly)) return;
-            out.write(data);
-            out.close();
-
-            if (!m_scene->loadFromFile(tmp)) {
+            if (!m_scene->loadFromData(data)) {
                 QMessageBox::critical(this, "Error",
-                                      "Failed to load sample.");
+                                      "Failed to parse sample.");
                 return;
             }
 
-            // don't set m_currentFile, samples are read only templates
             m_currentFile.clear();
             updateWindowTitle();
             statusBar()->showMessage("Sample loaded: " +

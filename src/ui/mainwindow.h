@@ -46,6 +46,8 @@ private:
     void saveFileAs();
 
     void updateWindowTitle();
+
+    QString m_lastDir;
 };
 
 #endif // MAINWINDOW_H

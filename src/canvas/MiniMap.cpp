@@ -88,19 +88,6 @@ void MiniMap::paintEvent(QPaintEvent *)
     clip.addRoundedRect(rect().adjusted(1,1,-1,-1), 7, 7);
     p.setClipPath(clip);
 
-    // draw connections first (behind nodes)
-    for (QGraphicsItem *item : m_scene->items()) {
-        QString tn = typeid(*item).name();
-        if (!tn.contains("Connection")) continue;
-
-        QRectF miniRect = toMini(
-            item->mapToScene(item->boundingRect()).boundingRect());
-
-        p.setBrush(QColor(180, 180, 255, 80));
-        p.setPen(QPen(QColor(180, 180, 255, 150), 1));
-        p.drawLine(miniRect.topLeft(), miniRect.bottomRight());
-    }
-
     // draw nodes
     for (QGraphicsItem *item : m_scene->items()) {
         QString tn = typeid(*item).name();

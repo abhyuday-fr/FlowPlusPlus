@@ -48,11 +48,23 @@ set(FPP_SOURCES
 )
 
 qt_add_executable(FlowPlusPlus ${FPP_SOURCES}
-    resources/samples.qrc
+
     src/canvas/MiniMap.h
     src/canvas/MiniMap.cpp
     src/canvas/UndoCommands.h
     src/canvas/UndoCommands.cpp)
+
+qt_add_resources(FlowPlusPlus "samples"
+    PREFIX "/samples"
+    BASE "${CMAKE_SOURCE_DIR}/samples"
+    FILES
+        samples/hello_world.fpp
+        samples/calculator.fpp
+        samples/countdown.fpp
+        samples/even_odd.fpp
+        samples/fibonacci.fpp
+        samples/grade_checker.fpp
+)
 
 # ── Include dirs ─────────────────────────────────────────
 target_include_directories(FlowPlusPlus PRIVATE
