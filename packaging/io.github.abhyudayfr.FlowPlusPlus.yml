@@ -20,8 +20,8 @@ modules:
           -DCMAKE_INSTALL_PREFIX=/app
       - cmake --build build
       - cmake --install build
-      - install -Dm644 FlowPlusPlus.desktop /app/share/applications/io.github.abhyudayfr.FlowPlusPlus.desktop
-      - install -Dm644 FlowPlusPlus.png /app/share/icons/hicolor/512x512/apps/io.github.abhyudayfr.FlowPlusPlus.png
+      - install -Dm644 packaging/FlowPlusPlus.desktop /app/share/applications/io.github.abhyudayfr.FlowPlusPlus.desktop
+      - install -Dm644 packaging/FlowPlusPlus.png /app/share/icons/hicolor/512x512/apps/io.github.abhyudayfr.FlowPlusPlus.png
     sources:
       - type: dir
         path: ..
