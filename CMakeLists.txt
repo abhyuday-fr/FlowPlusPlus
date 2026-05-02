@@ -1,11 +1,18 @@
 cmake_minimum_required(VERSION 3.19)
-project(FlowPlusPlus LANGUAGES CXX)
+
+# ── Version ───────────────────────────────────────────────
+set(FPP_VERSION_MAJOR 1)
+set(FPP_VERSION_MINOR 0)
+set(FPP_VERSION_PATCH 0)
+set(FPP_VERSION "${FPP_VERSION_MAJOR}.${FPP_VERSION_MINOR}.${FPP_VERSION_PATCH}")
+
+project(FlowPlusPlus VERSION ${FPP_VERSION} LANGUAGES CXX)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
 
 qt_standard_project_setup()
 
-# ── Sources ──────────────────────────────────────────────
+# ── Sources ───────────────────────────────────────────────
 set(FPP_SOURCES
     src/main.cpp
 
@@ -14,7 +21,7 @@ set(FPP_SOURCES
     src/ui/mainwindow.h
     src/ui/mainwindow.ui
 
-    # Canvas  (QGraphicsScene / QGraphicsView layer)
+    # Canvas (QGraphicsScene / QGraphicsView layer)
     src/canvas/FlowScene.cpp
     src/canvas/FlowScene.h
     src/canvas/FlowView.cpp
@@ -26,7 +33,7 @@ set(FPP_SOURCES
     src/canvas/UndoCommands.cpp
     src/canvas/UndoCommands.h
 
-    # Nodes  (our visual AST nodes)
+    # Nodes (our visual AST nodes)
     src/nodes/FlowNode.cpp
     src/nodes/FlowNode.h
     src/nodes/StartStopNode.cpp
@@ -38,7 +45,7 @@ set(FPP_SOURCES
     src/nodes/DecisionNode.cpp
     src/nodes/DecisionNode.h
 
-    # Interpreter core  (Crafting Interpreters style)
+    # Interpreter core (Crafting Interpreters style)
     src/interpreter/Value.cpp
     src/interpreter/Value.h
     src/interpreter/Environment.cpp
@@ -47,13 +54,9 @@ set(FPP_SOURCES
     src/interpreter/Interpreter.h
 )
 
-qt_add_executable(FlowPlusPlus ${FPP_SOURCES}
+qt_add_executable(FlowPlusPlus ${FPP_SOURCES})
 
-    src/canvas/MiniMap.h
-    src/canvas/MiniMap.cpp
-    src/canvas/UndoCommands.h
-    src/canvas/UndoCommands.cpp)
-
+# ── Sample resources ──────────────────────────────────────
 qt_add_resources(FlowPlusPlus "samples"
     PREFIX "/samples"
     BASE "${CMAKE_SOURCE_DIR}/samples"
@@ -66,7 +69,7 @@ qt_add_resources(FlowPlusPlus "samples"
         samples/grade_checker.fpp
 )
 
-# ── Include dirs ─────────────────────────────────────────
+# ── Include dirs ──────────────────────────────────────────
 target_include_directories(FlowPlusPlus PRIVATE
     src
     src/canvas
@@ -75,15 +78,33 @@ target_include_directories(FlowPlusPlus PRIVATE
     src/ui
 )
 
-# ── Link ─────────────────────────────────────────────────
+# ── Link ──────────────────────────────────────────────────
 target_link_libraries(FlowPlusPlus PRIVATE
     Qt6::Core
     Qt6::Widgets
 )
 
-# ── C++ standard ─────────────────────────────────────────
+# ── C++ standard ──────────────────────────────────────────
 target_compile_features(FlowPlusPlus PRIVATE cxx_std_17)
 
+# ── Platform-specific properties ──────────────────────────
+if(WIN32)
+    set_target_properties(FlowPlusPlus PROPERTIES
+        WIN32_EXECUTABLE TRUE
+    )
+endif()
+
+if(APPLE)
+    set_target_properties(FlowPlusPlus PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_BUNDLE_NAME        "FlowPlusPlus"
+        MACOSX_BUNDLE_BUNDLE_VERSION     ${FPP_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${FPP_VERSION}
+        MACOSX_BUNDLE_GUI_IDENTIFIER     "io.github.abhyudayfr.FlowPlusPlus"
+    )
+endif()
+
+# ── Install ───────────────────────────────────────────────
 include(GNUInstallDirs)
 install(TARGETS FlowPlusPlus
     BUNDLE  DESTINATION .
@@ -91,9 +112,13 @@ install(TARGETS FlowPlusPlus
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-qt_generate_deploy_app_script(
-    TARGET FlowPlusPlus
-    OUTPUT_SCRIPT deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-)
-install(SCRIPT ${deploy_script})
+# ── Deploy script (Windows and macOS only) ────────────────
+# Linux uses Flatpak which handles deployment itself
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    qt_generate_deploy_app_script(
+        TARGET FlowPlusPlus
+        OUTPUT_SCRIPT deploy_script
+        NO_UNSUPPORTED_PLATFORM_ERROR
+    )
+    install(SCRIPT ${deploy_script})
+endif()

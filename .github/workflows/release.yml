@@ -61,18 +61,22 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Build
+        shell: cmd
         run: |
-          cmake -B build -G "NMake Makefiles" `
-            -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -G "NMake Makefiles" ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_PREFIX_PATH="%Qt6_DIR%"
           cmake --build build
 
       - name: Deploy Qt DLLs
+        shell: cmd
         run: |
           mkdir deploy
           copy build\FlowPlusPlus.exe deploy\
-          windeployqt --release deploy\FlowPlusPlus.exe
+          windeployqt --release --no-translations deploy\FlowPlusPlus.exe
 
       - name: Zip
+        shell: powershell
         run: |
           Compress-Archive -Path deploy\* `
             -DestinationPath FlowPlusPlus-windows-x64.zip
@@ -97,10 +101,15 @@ jobs:
           host: 'mac'
           target: 'desktop'
 
+      - name: Install Ninja
+        run: brew install ninja
+
       - name: Build
         run: |
           cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH=$Qt6_DIR \
+            -DMACOSX_BUNDLE=ON
           cmake --build build
 
       - name: Package DMG
@@ -133,23 +142,33 @@ jobs:
             ## FlowPlusPlus ${{ github.ref_name }}
 
             A visual flowchart interpreter built with C++ and Qt6.
+            Draw flowcharts, connect nodes, and execute your logic visually.
 
             ### Downloads
             | Platform | File | Instructions |
             |----------|------|--------------|
-            | Linux    | `FlowPlusPlus-linux.flatpak` | `flatpak install FlowPlusPlus-linux.flatpak` |
-            | Windows  | `FlowPlusPlus-windows-x64.zip` | Extract and run `FlowPlusPlus.exe` |
-            | macOS    | `FlowPlusPlus-macos.dmg` | Open DMG, drag to Applications |
+            | Linux | `FlowPlusPlus-linux.flatpak` | `flatpak install FlowPlusPlus-linux.flatpak` then `flatpak run io.github.abhyudayfr.FlowPlusPlus` |
+            | Windows | `FlowPlusPlus-windows-x64.zip` | Extract zip and run `FlowPlusPlus.exe` |
+            | macOS | `FlowPlusPlus-macos.dmg` | Open DMG and drag to Applications |
+
+            ### Requirements
+            - **Linux**: Flatpak installed (`sudo dnf install flatpak` or `sudo apt install flatpak`)
+            - **Windows**: No requirements, self-contained
+            - **macOS**: macOS 11+
 
             ### Sample Programs
-            Use **File → Open Sample** to load built-in example flowcharts.
+            Use **File → Open Sample** to load built-in example flowcharts:
+            - Hello World
+            - Calculator
+            - Countdown
+            - Even or Odd
+            - Fibonacci
+            - Grade Checker
 
-            ### What's New
-            - Full flowchart interpreter with Lexer, Parser, AST
-            - Save/Load (.fpp format)
-            - Undo/Redo, Copy/Paste, Multi-select
-            - Minimap overview panel
-            - 6 built-in sample programs
+            ### Built With
+            - C++17
+            - Qt 6
+            - CMake + Ninja
           files: |
             linux-flatpak/FlowPlusPlus-linux.flatpak
             windows-zip/FlowPlusPlus-windows-x64.zip
