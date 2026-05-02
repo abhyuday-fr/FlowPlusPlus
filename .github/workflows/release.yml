@@ -1,0 +1,160 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+
+# ── Linux (Flatpak) ───────────────────────────────────────────────────────────
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder ninja-build
+          flatpak remote-add --user --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub \
+            org.kde.Platform//6.8 org.kde.Sdk//6.8
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --user --install --force-clean build-flatpak \
+            packaging/io.github.abhyudayfr.FlowPlusPlus.yml
+
+      - name: Export Flatpak bundle
+        run: |
+          flatpak build-bundle \
+            ~/.local/share/flatpak/repo \
+            FlowPlusPlus-linux.flatpak \
+            io.github.abhyudayfr.FlowPlusPlus
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-flatpak
+          path: FlowPlusPlus-linux.flatpak
+
+# ── Windows ───────────────────────────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.0'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Build
+        run: |
+          cmake -B build -G "NMake Makefiles" `
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: Deploy Qt DLLs
+        run: |
+          mkdir deploy
+          copy build\FlowPlusPlus.exe deploy\
+          windeployqt --release deploy\FlowPlusPlus.exe
+
+      - name: Zip
+        run: |
+          Compress-Archive -Path deploy\* `
+            -DestinationPath FlowPlusPlus-windows-x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-zip
+          path: FlowPlusPlus-windows-x64.zip
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.0'
+          host: 'mac'
+          target: 'desktop'
+
+      - name: Build
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: Package DMG
+        run: |
+          macdeployqt build/FlowPlusPlus.app -dmg
+          mv build/FlowPlusPlus.dmg FlowPlusPlus-macos.dmg
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: FlowPlusPlus-macos.dmg
+
+# ── Create GitHub Release ─────────────────────────────────────────────────────
+  release:
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-22.04
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: FlowPlusPlus ${{ github.ref_name }}
+          body: |
+            ## FlowPlusPlus ${{ github.ref_name }}
+
+            A visual flowchart interpreter built with C++ and Qt6.
+
+            ### Downloads
+            | Platform | File | Instructions |
+            |----------|------|--------------|
+            | Linux    | `FlowPlusPlus-linux.flatpak` | `flatpak install FlowPlusPlus-linux.flatpak` |
+            | Windows  | `FlowPlusPlus-windows-x64.zip` | Extract and run `FlowPlusPlus.exe` |
+            | macOS    | `FlowPlusPlus-macos.dmg` | Open DMG, drag to Applications |
+
+            ### Sample Programs
+            Use **File → Open Sample** to load built-in example flowcharts.
+
+            ### What's New
+            - Full flowchart interpreter with Lexer, Parser, AST
+            - Save/Load (.fpp format)
+            - Undo/Redo, Copy/Paste, Multi-select
+            - Minimap overview panel
+            - 6 built-in sample programs
+          files: |
+            linux-flatpak/FlowPlusPlus-linux.flatpak
+            windows-zip/FlowPlusPlus-windows-x64.zip
+            macos-dmg/FlowPlusPlus-macos.dmg
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
