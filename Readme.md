@@ -53,7 +53,7 @@ cmake --build build
 - ✅ Minimap
 - ✅ Multi-select + copy/paste
 - ✅ Undo/Redo
-- ⬜ Sample .fpp files
+- ✅ Sample .fpp files
 - ⬜ AppImage packaging (Linux)
 - ⬜ Windows installer
 - ⬜ macOS DMG
