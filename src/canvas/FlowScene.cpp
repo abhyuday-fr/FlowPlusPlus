@@ -618,3 +618,78 @@ bool FlowScene::loadFromFile(const QString &path){
 
     return true;
 }
+
+bool FlowScene::loadFromData(const QByteArray &data)
+{
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &err);
+    if (err.error != QJsonParseError::NoError)
+        return false;
+
+    QJsonObject root = doc.object();
+    if (root["version"].toInt() != 1)
+        return false;
+
+    clearAll();
+
+    QHash<int, FlowNode*> idToNode;
+
+    for (const QJsonValue &val : root["nodes"].toArray()) {
+        QJsonObject obj  = val.toObject();
+        int         id   = obj["id"].toInt();
+        QString     type = obj["type"].toString();
+        QString     mode = obj["mode"].toString();
+        QString     lbl  = obj["label"].toString();
+        qreal       x    = obj["x"].toDouble();
+        qreal       y    = obj["y"].toDouble();
+
+        FlowNode *node = nullptr;
+
+        if (type == "StartStop") {
+            auto m = (mode == "Start")
+            ? StartStopNode::Mode::Start
+            : StartStopNode::Mode::Stop;
+            node = new StartStopNode(m);
+        } else if (type == "Process") {
+            node = new ProcessNode();
+        } else if (type == "Decision") {
+            node = new DecisionNode();
+        } else if (type == "IO") {
+            auto m = (mode == "Input")
+            ? IONode::Mode::Input
+            : IONode::Mode::Output;
+            node = new IONode(m);
+        }
+
+        if (!node) continue;
+        node->setLabel(lbl);
+        node->setPos(x, y);
+        addItem(node);
+        idToNode[id] = node;
+    }
+
+    for (const QJsonValue &val : root["connections"].toArray()) {
+        QJsonObject obj    = val.toObject();
+        int         fromId = obj["from"].toInt();
+        int         toId   = obj["to"].toInt();
+        bool        isYes  = obj["isYes"].toBool();
+
+        if (!idToNode.contains(fromId)) continue;
+        if (!idToNode.contains(toId))   continue;
+
+        FlowNode *from = idToNode[fromId];
+        FlowNode *to   = idToNode[toId];
+
+        QPointF portPos;
+        DecisionNode *dn = dynamic_cast<DecisionNode*>(from);
+        if (dn)
+            portPos = isYes ? dn->outputPortYes() : dn->outputPortNo();
+        else
+            portPos = from->outputPort();
+
+        FlowConnection *conn = new FlowConnection(from, to, portPos);
+        addItem(conn);
+    }
+
+    return true;
+}

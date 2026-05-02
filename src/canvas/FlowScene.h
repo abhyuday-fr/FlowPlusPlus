@@ -34,6 +34,7 @@ public:
 
     bool saveToFile(const QString &path);
     bool loadFromFile(const QString &path);
+    bool loadFromData(const QByteArray &data);
 
     // drag mode helper
     bool isNearOutputPort(const QPointF &scenePos);

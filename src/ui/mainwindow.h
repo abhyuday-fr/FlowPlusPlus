@@ -19,6 +19,7 @@ public:
     void fitToContents();
 
 private:
+    void setupSamplesMenu(QMenu *fileMenu);
     void setupMenuBar();
     void setupStatusBar();
     void setupToolBar();

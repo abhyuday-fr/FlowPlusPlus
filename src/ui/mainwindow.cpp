@@ -18,6 +18,8 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QUndoStack>
+#include <QResource>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -69,7 +71,10 @@ void MainWindow::setupMenuBar()
     fileMenu->addAction(saveAsAct);
 
     fileMenu->addSeparator();
+    setupSamplesMenu(fileMenu);
+    fileMenu->addSeparator();
 
+    fileMenu->addSeparator();
     QAction *quitAct = new QAction("&Quit", this);
     quitAct->setShortcut(QKeySequence::Quit);
     connect(quitAct, &QAction::triggered, qApp, &QApplication::quit);
@@ -270,4 +275,59 @@ void MainWindow::updateWindowTitle(){
         setWindowTitle("FlowPlusPlus — Untitled");
     else
         setWindowTitle("FlowPlusPlus — " + QFileInfo(m_currentFile).fileName());
+}
+
+void MainWindow::setupSamplesMenu(QMenu *fileMenu)
+{
+    QMenu *samplesMenu = fileMenu->addMenu("Open &Sample");
+
+    struct Sample {
+        QString name;
+        QString resource;
+    };
+
+    const QList<Sample> samples = {
+                                   { "Hello World",    ":/samples/hello_world.fpp"   },
+                                   { "Calculator",     ":/samples/calculator.fpp"    },
+                                   { "Countdown",      ":/samples/countdown.fpp"     },
+                                   { "Even or Odd",    ":/samples/even_odd.fpp"      },
+                                   { "Fibonacci",      ":/samples/fibonacci.fpp"     },
+                                   { "Grade Checker",  ":/samples/grade_checker.fpp" },
+                                   };
+
+    for (const Sample &s : samples) {
+        QAction *act = new QAction(s.name, this);
+        QString  res = s.resource;
+
+        connect(act, &QAction::triggered, this, [this, res] {
+            // copy resource to a temp file then load
+            // (loadFromFile needs a real path, not a Qt resource path)
+            QFile src(res);
+            if (!src.open(QIODevice::ReadOnly)) return;
+            QByteArray data = src.readAll();
+            src.close();
+
+            // write to temp
+            QString tmp = QDir::temp().filePath("fpp_sample.fpp");
+            QFile out(tmp);
+            if (!out.open(QIODevice::WriteOnly)) return;
+            out.write(data);
+            out.close();
+
+            if (!m_scene->loadFromFile(tmp)) {
+                QMessageBox::critical(this, "Error",
+                                      "Failed to load sample.");
+                return;
+            }
+
+            // don't set m_currentFile, samples are read only templates
+            m_currentFile.clear();
+            updateWindowTitle();
+            statusBar()->showMessage("Sample loaded: " +
+                                     res.section('/', -1));
+            fitToContents();
+        });
+
+        samplesMenu->addAction(act);
+    }
 }

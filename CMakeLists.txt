@@ -48,6 +48,7 @@ set(FPP_SOURCES
 )
 
 qt_add_executable(FlowPlusPlus ${FPP_SOURCES}
+    resources/samples.qrc
     src/canvas/MiniMap.h
     src/canvas/MiniMap.cpp
     src/canvas/UndoCommands.h

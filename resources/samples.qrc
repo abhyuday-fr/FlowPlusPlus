@@ -1,0 +1,11 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="/samples">
+    <file>../samples/hello_world.fpp</file>
+    <file>../samples/calculator.fpp</file>
+    <file>../samples/countdown.fpp</file>
+    <file>../samples/even_odd.fpp</file>
+    <file>../samples/fibonacci.fpp</file>
+    <file>../samples/grade_checker.fpp</file>
+  </qresource>
+</RCC>
