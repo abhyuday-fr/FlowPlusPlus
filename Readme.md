@@ -51,7 +51,7 @@ cmake --build build
 - ✅ Core interpreter
 - ✅ Save/Load
 - ✅ Minimap
-- ⬜ Multi-select + copy/paste
+- ✅ Multi-select + copy/paste
 - ⬜ Undo/Redo
 - ⬜ Sample .fpp files
 - ⬜ AppImage packaging (Linux)
