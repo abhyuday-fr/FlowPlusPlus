@@ -52,7 +52,7 @@ cmake --build build
 - ✅ Save/Load
 - ✅ Minimap
 - ✅ Multi-select + copy/paste
-- ⬜ Undo/Redo
+- ✅ Undo/Redo
 - ⬜ Sample .fpp files
 - ⬜ AppImage packaging (Linux)
 - ⬜ Windows installer
