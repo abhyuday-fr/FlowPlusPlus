@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.19)
 # ── Version ───────────────────────────────────────────────
 set(FPP_VERSION_MAJOR 1)
 set(FPP_VERSION_MINOR 0)
-set(FPP_VERSION_PATCH 2)
+set(FPP_VERSION_PATCH 3)
 set(FPP_VERSION "${FPP_VERSION_MAJOR}.${FPP_VERSION_MINOR}.${FPP_VERSION_PATCH}")
 
 project(FlowPlusPlus VERSION ${FPP_VERSION} LANGUAGES CXX)

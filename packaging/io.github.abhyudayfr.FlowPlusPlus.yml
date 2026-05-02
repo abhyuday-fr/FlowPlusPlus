@@ -9,6 +9,7 @@ finish-args:
   - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
+  - --filesystem=home
 
 modules:
   - name: FlowPlusPlus
@@ -18,8 +19,9 @@ modules:
           -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_INSTALL_PREFIX=/app
       - cmake --build build
-      - cmake --install build --component Runtime
-      - install -Dm755 build/FlowPlusPlus /app/bin/FlowPlusPlus
+      - cmake --install build
+      - install -Dm644 FlowPlusPlus.desktop /app/share/applications/io.github.abhyudayfr.FlowPlusPlus.desktop
+      - install -Dm644 FlowPlusPlus.png /app/share/icons/hicolor/512x512/apps/io.github.abhyudayfr.FlowPlusPlus.png
     sources:
       - type: dir
         path: ..
