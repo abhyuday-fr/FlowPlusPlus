@@ -1,118 +1,77 @@
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Geist+Mono:wght@300;400;500&display=swap');
+
+/* ── C++ Brand Palette ── */
 :root {
-  --bg-color: #0d1117;
-  --grid-color: rgba(255, 255, 255, 0.05);
-  --node-bg: #161b22;
-  --node-border: #30363d;
-  --accent-color: #58a6ff;
-  --line-color: #238636;
-  --text-main: #c9d1d9;
-  --text-dim: #8b949e;
-  
-  --start-node: #238636;
-  --process-node: #1f6feb;
-  --decision-node: #9e6a03;
+  --bg:           #080d14;
+  --grid:         rgba(0, 84, 166, 0.08);
+  --node-bg:      #0c1420;
+  --node-border:  #1e2a3a;
+
+  --cpp-deep:     #003a8c;
+  --cpp-blue:     #0054A6;
+  --cpp-mid:      #0078D7;
+  --cpp-light:    #00A3FF;
+  --cpp-glow:     rgba(0, 84, 166, 0.4);
+
+  --green:        #238636;
+  --green-light:  #3fb950;
+
+  --text:         #c9d1d9;
+  --text-dim:     #4a5568;
+  --text-bright:  #e6edf3;
+
+  --line:         #0078D7;
+
+  /* Fonts */
+  --font-display: 'Syne', sans-serif;
+  --font-mono:    'Space Mono', monospace;
+  --font-ui:      'Geist Mono', monospace;
 }
 
-* {
+/* ── Reset ── */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
 html, body {
-  background-color: #0d1117;
-  color: #c9d1d9;
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
+  background-color: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  overflow-x: hidden;
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ── Grid Background ── */
 .canvas-bg {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    radial-gradient(var(--grid-color) 1px, transparent 1px),
-    radial-gradient(var(--grid-color) 1px, transparent 1px);
-  background-size: 40px 40px;
-  background-position: 0 0, 20px 20px;
+  inset: 0;
+  background-image:
+    radial-gradient(var(--grid) 1px, transparent 1px);
+  background-size: 36px 36px;
   z-index: -1;
+  /* Subtle vignette */
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%,
+    black 40%, transparent 100%);
 }
 
+/* ── Container ── */
 .flow-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 100px 20px;
-  min-height: 200vh;
+  padding: 120px 24px 0;
+  min-height: 300vh;
   position: relative;
 }
 
-/* Node Styles */
-.node {
-  background: var(--node-bg);
-  border: 2px solid var(--node-border);
-  padding: 40px 60px;
-  margin-bottom: 150px;
-  position: relative;
-  z-index: 10;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  transition: all 0.5s cubic-bezier(0.17, 0.55, 0.55, 1);
-  min-width: 320px;
-  text-align: center;
-}
-
-.node-glow {
-  box-shadow: 0 0 20px var(--line-color), 0 0 40px rgba(35, 134, 54, 0.3);
-  border-color: var(--line-color);
-  transform: scale(1.02);
-}
-
-.hero-text {
-  font-size: 3.5rem;
-  font-weight: 800;
-  background: linear-gradient(to right, #58a6ff, #238636);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 10px;
-  letter-spacing: -1px;
-}
-
-.node-decision {
-  transform: rotate(0deg);
-  border-color: var(--decision-node);
-  /* Fix: Diamond shape with internal padding */
-  padding: 80px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 300px;
-  height: 300px;
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-}
-
-.node-decision > div {
-  transform: rotate(0deg);
-}
-
-.node h2 {
-  margin-bottom: 10px;
-  font-size: 1.5rem;
-}
-
-.node p {
-  color: var(--text-dim);
-  font-size: 1rem;
-}
-
-/* Connections */
+/* ── SVG Line ── */
 .svg-container {
   position: absolute;
   top: 0;
@@ -123,37 +82,286 @@ body {
   z-index: 5;
 }
 
+/* ── Nodes ── */
+.node {
+  background: var(--node-bg);
+  border: 1.5px solid var(--node-border);
+  padding: 48px 64px;
+  position: relative;
+  z-index: 10;
+  min-width: 340px;
+  text-align: center;
+  transition: border-color 0.5s, box-shadow 0.5s;
+}
+
+/* Port dots — top and bottom */
+.node::before,
+.node::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--cpp-mid);
+  background: var(--bg);
+  z-index: 20;
+}
+
+.node::before { top:    -6px; }
+.node::after  { bottom: -6px; background: var(--cpp-mid); }
+
+/* ── Start / End nodes ── */
+.node-start {
+  border-radius: 80px;
+  padding: 52px 80px;
+}
+
+.node-start::before,
+.node-start::after {
+  border-color: var(--green);
+}
+.node-start::after {
+  background: var(--green);
+}
+
+.node-end {
+  padding: 44px 100px;
+  margin-bottom: 0 !important;
+}
+
+.node-end::after {
+  display: none; /* No output port on End */
+}
+
+/* ── Process node ── */
+.node-process {
+  border-radius: 8px;
+  max-width: 600px;
+}
+
+/* ── Decision node ── */
+.node-decision {
+  width: 280px;
+  height: 280px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  border-radius: 0;
+}
+
+/* Ports don't make sense clipped, hide them */
+.node-decision::before,
+.node-decision::after {
+  display: none;
+}
+
+/* ── Download row ── */
+.download-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 1100px;
+  z-index: 10;
+}
+
+.node-download {
+  flex: 1;
+  min-width: 280px;
+  max-width: 320px;
+  border-radius: 8px;
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0 !important;
+}
+
+/* ── Node tag label ── */
+.node-tag {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: var(--cpp-light);
+  opacity: 0.6;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* ── Logo badge ── */
+.logo-badge {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cpp-light);
+  background: rgba(0, 84, 166, 0.15);
+  border: 1px solid rgba(0, 120, 215, 0.4);
+  border-radius: 6px;
+  padding: 4px 14px;
+  display: inline-block;
+  margin-bottom: 20px;
+  letter-spacing: 0.05em;
+}
+
+/* ── Hero text ── */
+.hero-text {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  background: linear-gradient(135deg, var(--cpp-light) 0%, var(--cpp-mid) 50%, var(--cpp-blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+
+.hero-sub {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 12px;
+  letter-spacing: 0.01em;
+}
+
+.hero-desc {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  max-width: 380px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── Node headings ── */
+.node h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.node h3 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: -0.01em;
+}
+
+.node p {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+/* ── End text ── */
+.end-text {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--green-light), var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+/* ── Buttons ── */
 .btn-group {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 24px;
   flex-wrap: wrap;
 }
 
 .btn {
-  padding: 12px 20px;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 10px 18px;
   border-radius: 6px;
   text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  transition: opacity 0.2s, transform 0.2s;
+  letter-spacing: 0.02em;
+  margin-top: 8px;
 }
-
-.btn-github { background: #21262d; color: white; border: 1px solid #30363d; }
-.btn-linux { background: #d4a017; color: black; }
-.btn-windows { background: #0078d4; color: white; }
-.btn-macos { background: #ffffff; color: black; }
 
 .btn:hover {
-  opacity: 0.9;
-  transform: scale(1.05);
+  opacity: 0.85;
+  transform: translateY(-1px);
 }
 
+.btn-github {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-bright);
+  border: 1px solid var(--node-border);
+}
+
+.btn-linux  { background: #d4a017; color: #000; border: none; }
+.btn-windows{ background: #0078d4; color: #fff; border: none; }
+.btn-macos  { background: #e8e8e8; color: #000; border: none; }
+
+/* ── Footer ── */
+footer {
+  margin-top: 120px;
+  padding-bottom: 60px;
+  text-align: center;
+}
+
+footer p {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 2;
+}
+
+.footer-sub {
+  font-size: 0.72rem !important;
+  opacity: 0.5;
+}
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .node {
-    min-width: 90%;
+    min-width: min(90vw, 340px);
+    padding: 36px 28px;
+  }
+
+  .node-start {
+    padding: 40px 40px;
+  }
+
+  .hero-text {
+    font-size: 2.4rem;
+  }
+
+  .download-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .node-download {
+    max-width: 100%;
+    width: 100%;
   }
 }
