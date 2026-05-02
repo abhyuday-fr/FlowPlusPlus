@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     setupStatusBar();
 
     updateWindowTitle();
+
+    m_view->initMiniMap(m_scene);
 }
 
 MainWindow::~MainWindow() {

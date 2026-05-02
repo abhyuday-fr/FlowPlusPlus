@@ -1,10 +1,43 @@
 #include "FlowView.h"
 #include "FlowScene.h"
+#include "MiniMap.h"
 
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QScrollBar>
 #include <QEnterEvent>
+#include <QResizeEvent>
+
+void FlowView::initMiniMap(FlowScene *scene)
+{
+    m_miniMap = new MiniMap(scene, this, this);
+    repositionMiniMap();
+    m_miniMap->show();
+}
+
+void FlowView::repositionMiniMap()
+{
+    if (!m_miniMap) return;
+    // Bottom-right corner with a small margin
+    int margin = 12;
+    m_miniMap->move(
+        width()  - m_miniMap->width()  - margin,
+        height() - m_miniMap->height() - margin
+        );
+}
+
+void FlowView::scrollContentsBy(int dx, int dy)
+{
+    QGraphicsView::scrollContentsBy(dx, dy);
+    if (m_miniMap) m_miniMap->update();
+}
+
+void FlowView::resizeEvent(QResizeEvent *event)
+{
+    QGraphicsView::resizeEvent(event);
+    repositionMiniMap();
+    if (m_miniMap) m_miniMap->update();
+}
 
 FlowView::FlowView(FlowScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent),

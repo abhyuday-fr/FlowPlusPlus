@@ -21,6 +21,8 @@ set(FPP_SOURCES
     src/canvas/FlowView.h
     src/canvas/FlowConnection.cpp
     src/canvas/FlowConnection.h
+    src/canvas/MiniMap.cpp
+    src/canvas/MiniMap.h
 
     # Nodes  (our visual AST nodes)
     src/nodes/FlowNode.cpp
@@ -43,7 +45,9 @@ set(FPP_SOURCES
     src/interpreter/Interpreter.h
 )
 
-qt_add_executable(FlowPlusPlus ${FPP_SOURCES})
+qt_add_executable(FlowPlusPlus ${FPP_SOURCES}
+    src/canvas/MiniMap.h
+    src/canvas/MiniMap.cpp)
 
 # ── Include dirs ─────────────────────────────────────────
 target_include_directories(FlowPlusPlus PRIVATE
