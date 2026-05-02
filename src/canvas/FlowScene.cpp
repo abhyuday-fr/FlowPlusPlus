@@ -5,6 +5,7 @@
 #include "ProcessNode.h"
 #include "DecisionNode.h"
 #include "IONode.h"
+#include "UndoCommands.h"
 
 #include <QGraphicsView>
 #include <QGraphicsSceneMouseEvent>
@@ -18,11 +19,13 @@
 #include <QJsonArray>
 #include <QFile>
 #include <QIODevice>
+#include <QUndoStack>
 
 static constexpr qreal PORT_HIT_RADIUS = 12.0;
 
 FlowScene::FlowScene(QObject *parent)
     : QGraphicsScene(parent)
+    , m_undoStack(new QUndoStack(this))
 {
     setSceneRect(-2000, -2000, 4000, 4000);
     setBackgroundBrush(QColor(30, 30, 30)); // dark canvas
@@ -325,6 +328,7 @@ void FlowScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
             FlowConnection *conn = new FlowConnection(
                 m_connFrom, target, m_connFromPos);
             addItem(conn);
+            m_undoStack->push(new AddConnectionCommand(this, conn));
         }
 
         // clean up temp line
@@ -348,30 +352,26 @@ void FlowScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
 
 void FlowScene::keyPressEvent(QKeyEvent *event)
 {
-    // copy
-    if (event->key() == Qt::Key_C && event->modifiers() & Qt::ControlModifier){
+    if (event->key() == Qt::Key_C && event->modifiers() & Qt::ControlModifier) {
         copySelected();
         event->accept();
         return;
     }
 
-    // paste
-    if(event->key() == Qt::Key_V && event->modifiers() & Qt::ControlModifier){
+    if (event->key() == Qt::Key_V && event->modifiers() & Qt::ControlModifier) {
         pasteClipboard();
         event->accept();
         return;
     }
 
-    // select all
-    if(event->key() == Qt::Key_A && event->modifiers() & Qt::ControlModifier){
-        for(QGraphicsItem *item : items())
+    if (event->key() == Qt::Key_A && event->modifiers() & Qt::ControlModifier) {
+        for (QGraphicsItem *item : items())
             item->setSelected(true);
         event->accept();
         return;
     }
 
-    if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace) {
-
+    if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace){
         const QList<QGraphicsItem*> selected = selectedItems();
         if (selected.isEmpty()) {
             event->accept();
@@ -384,7 +384,6 @@ void FlowScene::keyPressEvent(QKeyEvent *event)
         for (QGraphicsItem *item : selected) {
             if (FlowConnection *conn = dynamic_cast<FlowConnection*>(item))
                 connsToDelete.insert(conn);
-
             if (FlowNode *node = dynamic_cast<FlowNode*>(item)) {
                 nodesToDelete.append(node);
                 for (FlowConnection *conn : node->connections())
@@ -392,22 +391,11 @@ void FlowScene::keyPressEvent(QKeyEvent *event)
             }
         }
 
-        // Delete connections first
-        for (FlowConnection *conn : connsToDelete) {
-            if (!conn) continue;
-            conn->detach();
-            removeItem(conn);
-            delete conn;
-        }
+        // Let the command handle the actual deletion
+        m_undoStack->push(new DeleteCommand(this, nodesToDelete,
+                                            connsToDelete));
 
-        // Then delete nodes
-        for (FlowNode *node : nodesToDelete) {
-            if (!node) continue;
-            removeItem(node);
-            delete node;
-        }
-
-        // Refocus, only if view still exists
+        // Refocus
         QGraphicsView *v = views().isEmpty() ? nullptr : views().first();
         if (v && v->isVisible())
             v->setFocus();
@@ -415,6 +403,7 @@ void FlowScene::keyPressEvent(QKeyEvent *event)
         event->accept();
         return;
     }
+
     QGraphicsScene::keyPressEvent(event);
 }
 
@@ -443,6 +432,7 @@ FlowNode* FlowScene::createNode(FlowNode::NodeType type, const QPointF &pos){
     if(node){
         addItem(node);
         node->setPos(pos);
+        m_undoStack->push(new PlaceNodeCommand(this, node));
     }
 
     return node;

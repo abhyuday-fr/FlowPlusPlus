@@ -1,5 +1,7 @@
 #include "FlowNode.h"
 #include "FlowConnection.h"
+#include "FlowScene.h"
+#include "UndoCommands.h"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -100,12 +102,24 @@ void FlowNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidge
     }
 }
 
-QVariant FlowNode::itemChange(GraphicsItemChange change, const QVariant &value)
-{
+QVariant FlowNode::itemChange(GraphicsItemChange change, const QVariant &value){
+    if (change == ItemPositionChange) {
+        m_posBeforeMove = pos();
+    }
+
     if (change == ItemPositionHasChanged) {
         // notify all connected arrows to redraw
         for (FlowConnection *conn : m_connections)
             conn->updatePath();
+
+        // push move command, scene handles the undo stack
+        if (scene()) {
+            FlowScene *fs = dynamic_cast<FlowScene*>(scene());
+            if (fs && pos() != m_posBeforeMove) {
+                fs->undoStack()->push(
+                    new MoveNodeCommand(this, m_posBeforeMove, pos()));
+            }
+        }
     }
     return QGraphicsItem::itemChange(change, value);
 }
@@ -119,12 +133,22 @@ void FlowNode::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     // use the event's widget as parent to avoid nullptr parent crash
     QWidget *parentWidget = event->widget();
+    QString oldLabel = m_label;
 
     // double-click to rename, like editing a variable name
     bool ok;
     QString text = QInputDialog::getText(parentWidget, "Edit Node Label", "Enter Label:", QLineEdit::Normal, m_label, &ok);
-    if (ok && !text.isEmpty())
-        setLabel(text);
+    if (ok && !text.isEmpty() && text != oldLabel) {
+        // push to undo stack
+        FlowScene *fs = dynamic_cast<FlowScene*>(scene());
+        if (fs) {
+            setLabel(text);
+            fs->undoStack()->push(
+                new EditLabelCommand(this, oldLabel, text));
+        } else {
+            setLabel(text);
+        }
+    }
 
     QGraphicsItem::mouseDoubleClickEvent(event);
 }

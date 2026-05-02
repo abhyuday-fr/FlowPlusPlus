@@ -6,6 +6,7 @@
 #include <QList>
 
 class FlowConnection;
+class FlowScene;
 
 class FlowNode : public QGraphicsItem
 {
@@ -75,6 +76,9 @@ protected:
     static constexpr qreal PORT_RADIUS =   5.0;
 
     bool m_hasError = false;
+
+private:
+    QPointF m_posBeforeMove;
 };
 
 #endif

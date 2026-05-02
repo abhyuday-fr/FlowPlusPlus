@@ -17,6 +17,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QFileInfo>
+#include <QUndoStack>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -79,6 +80,18 @@ void MainWindow::setupMenuBar()
     execAct->setShortcut(QKeySequence("F5"));
     runMenu->addAction(execAct);
     connect(execAct, &QAction::triggered, this, &MainWindow::runFlow);
+
+    QMenu *editMenu = menuBar()->addMenu("&Edit");
+
+    QAction *undoAct = m_scene->undoStack()->createUndoAction(this, "&Undo");
+    undoAct->setShortcut(QKeySequence::Undo);
+    editMenu->addAction(undoAct);
+
+    QAction *redoAct = m_scene->undoStack()->createRedoAction(this, "&Redo");
+    QList<QKeySequence> redoShortcuts;
+    redoShortcuts << QKeySequence::Redo << QKeySequence("Ctrl+Y");
+    redoAct->setShortcuts(redoShortcuts);
+    editMenu->addAction(redoAct);
 }
 
 void MainWindow::setupToolBar()

@@ -11,6 +11,8 @@
 #include "StartStopNode.h"
 #include "IONode.h"
 
+#include <QUndoStack>
+
 class FlowConnection;
 class DecisionNode;
 
@@ -38,6 +40,8 @@ public:
 
     void copySelected();
     void pasteClipboard();
+
+    QUndoStack *undoStack() const { return m_undoStack; }
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -71,6 +75,8 @@ private:
     bool m_pendingIOInput = false;
 
     QJsonArray m_clipboard;
+
+    QUndoStack *m_undoStack;
 };
 
 #endif

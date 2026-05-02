@@ -23,6 +23,8 @@ set(FPP_SOURCES
     src/canvas/FlowConnection.h
     src/canvas/MiniMap.cpp
     src/canvas/MiniMap.h
+    src/canvas/UndoCommands.cpp
+    src/canvas/UndoCommands.h
 
     # Nodes  (our visual AST nodes)
     src/nodes/FlowNode.cpp
@@ -47,7 +49,9 @@ set(FPP_SOURCES
 
 qt_add_executable(FlowPlusPlus ${FPP_SOURCES}
     src/canvas/MiniMap.h
-    src/canvas/MiniMap.cpp)
+    src/canvas/MiniMap.cpp
+    src/canvas/UndoCommands.h
+    src/canvas/UndoCommands.cpp)
 
 # ── Include dirs ─────────────────────────────────────────
 target_include_directories(FlowPlusPlus PRIVATE
