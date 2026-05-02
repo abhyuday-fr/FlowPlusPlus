@@ -71,9 +71,9 @@ jobs:
       - name: Deploy Qt DLLs
         shell: cmd
         run: |
-          mkdir deploy
+          if not exist deploy mkdir deploy
           copy build\FlowPlusPlus.exe deploy\
-          windeployqt --release --no-translations deploy\FlowPlusPlus.exe
+          windeployqt --release --no-transactions deploy\FlowPlusPLus.exe
 
       - name: Zip
         shell: powershell
