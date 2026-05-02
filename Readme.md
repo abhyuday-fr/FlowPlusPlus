@@ -50,7 +50,7 @@ cmake --build build
 ### next steps to come
 - ✅ Core interpreter
 - ✅ Save/Load
-- ⬜ Minimap
+- ✅ Minimap
 - ⬜ Multi-select + copy/paste
 - ⬜ Undo/Redo
 - ⬜ Sample .fpp files
