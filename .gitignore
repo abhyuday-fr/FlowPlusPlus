@@ -36,3 +36,8 @@ Thumbs.db
 *.swp
 *.swo
 *~
+*.AppImage
+AppDir/
+build-flatpak/
+.flatpak-builder/
+squashfs-root/
