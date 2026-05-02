@@ -45,7 +45,8 @@ cmake --build build
 - [x] Chapter 8 — Control flow (Decision node branching)
 - [x] Chapter 9 — I/O nodes (print, read input)
 
-##### can't wait to make a releasable version :)
+##### ~~can't wait to make a releasable version :)~~
+##### I did it :D
 
 ### next steps to come
 - ✅ Core interpreter
