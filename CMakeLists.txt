@@ -3,12 +3,12 @@ cmake_minimum_required(VERSION 3.19)
 # ── Version ───────────────────────────────────────────────
 set(FPP_VERSION_MAJOR 1)
 set(FPP_VERSION_MINOR 0)
-set(FPP_VERSION_PATCH 0)
+set(FPP_VERSION_PATCH 1)
 set(FPP_VERSION "${FPP_VERSION_MAJOR}.${FPP_VERSION_MINOR}.${FPP_VERSION_PATCH}")
 
 project(FlowPlusPlus VERSION ${FPP_VERSION} LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets)
 
 qt_standard_project_setup()
 
@@ -81,6 +81,7 @@ target_include_directories(FlowPlusPlus PRIVATE
 # ── Link ──────────────────────────────────────────────────
 target_link_libraries(FlowPlusPlus PRIVATE
     Qt6::Core
+    Qt6::Gui
     Qt6::Widgets
 )
 
