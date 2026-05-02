@@ -73,7 +73,7 @@ jobs:
         run: |
           if not exist deploy mkdir deploy
           copy build\FlowPlusPlus.exe deploy\
-          windeployqt --release --no-transactions deploy\FlowPlusPlus.exe
+          windeployqt --release --no-translations deploy\FlowPlusPlus.exe
 
       - name: Zip
         shell: powershell
