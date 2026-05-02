@@ -28,6 +28,181 @@ FlowScene::FlowScene(QObject *parent)
     setBackgroundBrush(QColor(30, 30, 30)); // dark canvas
 }
 
+bool FlowScene::isNearOutputPort(const QPointF &scenePos){
+    return outputPortAt(scenePos).node != nullptr;
+}
+
+// copy/pase
+void FlowScene::copySelected(){
+    const QList<QGraphicsItem*> selected = selectedItems();
+    if (selected.isEmpty()) return;
+
+    // build a map of selected nodes only
+    QHash<FlowNode*, int> nodeIds;
+    QJsonArray nodesArr;
+    int id = 0;
+
+    for (QGraphicsItem *item : selected) {
+        FlowNode *node = dynamic_cast<FlowNode*>(item);
+        if (!node) continue;
+        nodeIds[node] = id;
+
+        QJsonObject obj;
+        obj["id"]    = id++;
+        obj["label"] = node->label();
+        obj["x"]     = node->pos().x();
+        obj["y"]     = node->pos().y();
+
+        switch (node->nodeType()) {
+        case FlowNode::NodeType::StartStop: {
+            obj["type"] = QString("StartStop");
+            StartStopNode *ss = dynamic_cast<StartStopNode*>(node);
+            obj["mode"] = (ss && ss->mode() == StartStopNode::Mode::Start)
+                              ? QString("Start") : QString("Stop");
+            break;
+        }
+        case FlowNode::NodeType::Process:
+            obj["type"] = QString("Process");
+            break;
+        case FlowNode::NodeType::Decision:
+            obj["type"] = QString("Decision");
+            break;
+        case FlowNode::NodeType::IO: {
+            obj["type"] = QString("IO");
+            IONode *io  = dynamic_cast<IONode*>(node);
+            obj["mode"] = (io && io->mode() == IONode::Mode::Input)
+                              ? QString("Input") : QString("Output");
+            break;
+        }
+        }
+        nodesArr.append(obj);
+    }
+
+    // only copy connections where BOTH endpoints are selected
+    QJsonArray connsArr;
+    for (QGraphicsItem *item : selected) {
+        FlowConnection *conn = dynamic_cast<FlowConnection*>(item);
+        if (!conn) continue;
+        if (!nodeIds.contains(conn->fromNode())) continue;
+        if (!nodeIds.contains(conn->toNode()))   continue;
+
+        QJsonObject obj;
+        obj["from"]  = nodeIds[conn->fromNode()];
+        obj["to"]    = nodeIds[conn->toNode()];
+        obj["isYes"] = conn->isYesConnection();
+        connsArr.append(obj);
+    }
+
+    // also copy connections between selected nodes
+    // even if the connection itself isn't selected
+    for (QGraphicsItem *item : selected) {
+        FlowNode *node = dynamic_cast<FlowNode*>(item);
+        if (!node) continue;
+        for (FlowConnection *conn : node->connections()) {
+            if (!nodeIds.contains(conn->fromNode())) continue;
+            if (!nodeIds.contains(conn->toNode()))   continue;
+
+            // Avoid duplicates
+            bool already = false;
+            for (const QJsonValue &v : connsArr) {
+                QJsonObject o = v.toObject();
+                if (o["from"].toInt() == nodeIds[conn->fromNode()] &&
+                    o["to"].toInt()   == nodeIds[conn->toNode()])
+                { already = true; break; }
+            }
+            if (!already) {
+                QJsonObject obj;
+                obj["from"]  = nodeIds[conn->fromNode()];
+                obj["to"]    = nodeIds[conn->toNode()];
+                obj["isYes"] = conn->isYesConnection();
+                connsArr.append(obj);
+            }
+        }
+    }
+
+    m_clipboard = QJsonArray();
+    QJsonObject data;
+    data["nodes"]       = nodesArr;
+    data["connections"] = connsArr;
+    m_clipboard.append(data);
+}
+
+void FlowScene::pasteClipboard(){
+    if (m_clipboard.isEmpty()) return;
+
+    QJsonObject data  = m_clipboard.first().toObject();
+    QJsonArray  nodes = data["nodes"].toArray();
+    QJsonArray  conns = data["connections"].toArray();
+
+    // paste offset so nodes don't land exactly on top of originals
+    constexpr qreal OFFSET = 30.0;
+
+    // deselect everything first
+    clearSelection();
+
+    QHash<int, FlowNode*> idToNode;
+
+    for (const QJsonValue &val : nodes) {
+        QJsonObject obj  = val.toObject();
+        int         id   = obj["id"].toInt();
+        QString     type = obj["type"].toString();
+        QString     mode = obj["mode"].toString();
+        QString     lbl  = obj["label"].toString();
+        qreal       x    = obj["x"].toDouble() + OFFSET;
+        qreal       y    = obj["y"].toDouble() + OFFSET;
+
+        FlowNode *node = nullptr;
+
+        if (type == "StartStop") {
+            auto m = (mode == "Start")
+            ? StartStopNode::Mode::Start
+            : StartStopNode::Mode::Stop;
+            node = new StartStopNode(m);
+        } else if (type == "Process") {
+            node = new ProcessNode();
+        } else if (type == "Decision") {
+            node = new DecisionNode();
+        } else if (type == "IO") {
+            auto m = (mode == "Input")
+            ? IONode::Mode::Input
+            : IONode::Mode::Output;
+            node = new IONode(m);
+        }
+
+        if (!node) continue;
+
+        node->setLabel(lbl);
+        node->setPos(x, y);
+        addItem(node);
+        node->setSelected(true);  // select pasted nodes
+        idToNode[id] = node;
+    }
+
+    // rebuild connections between pasted nodes
+    for (const QJsonValue &val : conns) {
+        QJsonObject obj    = val.toObject();
+        int         fromId = obj["from"].toInt();
+        int         toId   = obj["to"].toInt();
+        bool        isYes  = obj["isYes"].toBool();
+
+        if (!idToNode.contains(fromId)) continue;
+        if (!idToNode.contains(toId))   continue;
+
+        FlowNode *from = idToNode[fromId];
+        FlowNode *to   = idToNode[toId];
+
+        QPointF portPos;
+        DecisionNode *dn = dynamic_cast<DecisionNode*>(from);
+        if (dn)
+            portPos = isYes ? dn->outputPortYes() : dn->outputPortNo();
+        else
+            portPos = from->outputPort();
+
+        FlowConnection *conn = new FlowConnection(from, to, portPos);
+        addItem(conn);
+    }
+}
+
 void  FlowScene::setPlacementMode(FlowNode::NodeType type,
                                  StartStopNode::Mode ssMode,
                                  bool ioInput){
@@ -173,6 +348,28 @@ void FlowScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
 
 void FlowScene::keyPressEvent(QKeyEvent *event)
 {
+    // copy
+    if (event->key() == Qt::Key_C && event->modifiers() & Qt::ControlModifier){
+        copySelected();
+        event->accept();
+        return;
+    }
+
+    // paste
+    if(event->key() == Qt::Key_V && event->modifiers() & Qt::ControlModifier){
+        pasteClipboard();
+        event->accept();
+        return;
+    }
+
+    // select all
+    if(event->key() == Qt::Key_A && event->modifiers() & Qt::ControlModifier){
+        for(QGraphicsItem *item : items())
+            item->setSelected(true);
+        event->accept();
+        return;
+    }
+
     if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace) {
 
         const QList<QGraphicsItem*> selected = selectedItems();

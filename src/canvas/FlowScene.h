@@ -4,6 +4,9 @@
 #include <QString>
 #include <QGraphicsScene>
 #include <QGraphicsPathItem>
+#include <QList>
+#include <QJsonArray>
+
 #include "FlowNode.h"
 #include "StartStopNode.h"
 #include "IONode.h"
@@ -29,6 +32,12 @@ public:
 
     bool saveToFile(const QString &path);
     bool loadFromFile(const QString &path);
+
+    // drag mode helper
+    bool isNearOutputPort(const QPointF &scenePos);
+
+    void copySelected();
+    void pasteClipboard();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -60,6 +69,8 @@ private:
 
     StartStopNode::Mode m_pendingSSMode = StartStopNode::Mode::Start;
     bool m_pendingIOInput = false;
+
+    QJsonArray m_clipboard;
 };
 
 #endif

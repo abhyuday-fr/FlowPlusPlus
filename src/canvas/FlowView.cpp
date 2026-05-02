@@ -8,6 +8,21 @@
 #include <QEnterEvent>
 #include <QResizeEvent>
 
+FlowView::FlowView(FlowScene *scene, QWidget *parent)
+    : QGraphicsView(scene, parent),
+    m_flowScene(scene)
+{
+    setRenderHint(QPainter::Antialiasing);
+    setDragMode(QGraphicsView::RubberBandDrag);
+    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    setResizeAnchor(QGraphicsView::AnchorUnderMouse);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    setFrameShape(QFrame::NoFrame);
+    setFocusPolicy(Qt::StrongFocus);
+    setRubberBandSelectionMode(Qt::IntersectsItemShape);
+}
+
 void FlowView::initMiniMap(FlowScene *scene)
 {
     m_miniMap = new MiniMap(scene, this, this);
@@ -39,20 +54,6 @@ void FlowView::resizeEvent(QResizeEvent *event)
     if (m_miniMap) m_miniMap->update();
 }
 
-FlowView::FlowView(FlowScene *scene, QWidget *parent)
-    : QGraphicsView(scene, parent),
-      m_flowScene(scene)
-{
-    setRenderHint(QPainter::Antialiasing);
-    setDragMode(QGraphicsView::NoDrag);
-    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-    setResizeAnchor(QGraphicsView::AnchorUnderMouse);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    setFrameShape(QFrame::NoFrame);
-    setFocusPolicy(Qt::StrongFocus);
-}
-
 void FlowView::wheelEvent(QWheelEvent *event)
 {
     if (event->modifiers() & Qt::ControlModifier) {
@@ -73,7 +74,21 @@ void FlowView::mousePressEvent(QMouseEvent *event)
         m_panning = true;
         m_lastPanPoint = event->pos();
         setCursor(Qt::ClosedHandCursor);
+        setDragMode(QGraphicsView::NoDrag);
+        event->accept();
+        return;
     }
+
+    // if clicking near a port, let scene handle it (no rubber band)
+    if (event->button() == Qt::LeftButton) {
+        QPointF scenePos = mapToScene(event->pos());
+        if (m_flowScene->isNearOutputPort(scenePos)) {
+            setDragMode(QGraphicsView::NoDrag);
+        } else {
+            setDragMode(QGraphicsView::RubberBandDrag);
+        }
+    }
+
     QGraphicsView::mousePressEvent(event);
 }
 
@@ -94,6 +109,10 @@ void FlowView::mouseReleaseEvent(QMouseEvent *event)
         m_panning = false;
         setCursor(Qt::ArrowCursor);
     }
+
+    // always restore rubber band after release
+    setDragMode(QGraphicsView::RubberBandDrag);
+
     QGraphicsView::mouseReleaseEvent(event);
 }
 
