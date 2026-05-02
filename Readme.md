@@ -54,7 +54,7 @@ cmake --build build
 - ✅ Multi-select + copy/paste
 - ✅ Undo/Redo
 - ✅ Sample .fpp files
-- ⬜ AppImage packaging (Linux)
-- ⬜ Windows installer
-- ⬜ macOS DMG
-- ⬜ GitHub Actions CI/CD
+- ✅ AppImage packaging (Linux)
+- ✅ Windows installer
+- ✅ macOS DMG
+- ✅ GitHub Actions CI/CD
