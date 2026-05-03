@@ -439,6 +439,8 @@ FlowNode* FlowScene::createNode(FlowNode::NodeType type, const QPointF &pos){
 }
 
 void FlowScene::clearAll(){
+    m_undoStack->clear();
+
     // first detach and delete all connections
     QList<FlowConnection*> conns;
     for(QGraphicsItem *item : items()){

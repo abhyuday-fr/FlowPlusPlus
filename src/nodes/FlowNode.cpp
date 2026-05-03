@@ -105,21 +105,13 @@ void FlowNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidge
 QVariant FlowNode::itemChange(GraphicsItemChange change, const QVariant &value){
     if (change == ItemPositionChange) {
         m_posBeforeMove = pos();
+        m_moving = true;
     }
 
     if (change == ItemPositionHasChanged) {
         // notify all connected arrows to redraw
         for (FlowConnection *conn : m_connections)
             conn->updatePath();
-
-        // push move command, scene handles the undo stack
-        if (scene()) {
-            FlowScene *fs = dynamic_cast<FlowScene*>(scene());
-            if (fs && pos() != m_posBeforeMove) {
-                fs->undoStack()->push(
-                    new MoveNodeCommand(this, m_posBeforeMove, pos()));
-            }
-        }
     }
     return QGraphicsItem::itemChange(change, value);
 }
@@ -151,4 +143,18 @@ void FlowNode::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     }
 
     QGraphicsItem::mouseDoubleClickEvent(event);
+}
+
+void FlowNode::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
+    QGraphicsItem::mouseReleaseEvent(event);
+
+    // only push if actually moved
+    if (m_moving && pos() != m_posBeforeMove) {
+        FlowScene *fs = dynamic_cast<FlowScene*>(scene());
+        if (fs) {
+            fs->undoStack()->push(
+                new MoveNodeCommand(this, m_posBeforeMove, pos()));
+        }
+        m_moving = false;
+    }
 }

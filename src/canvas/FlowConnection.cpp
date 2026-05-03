@@ -72,6 +72,12 @@ void FlowConnection::updatePath()
 }
 
 void FlowConnection::detach(){
-    if (m_from) { m_from->removeConnection(this); m_from = nullptr; }
-    if (m_to)   { m_to->removeConnection(this);   m_to   = nullptr; }
+    if (m_from) m_from->removeConnection(this);
+    if (m_to)   m_to->removeConnection(this);
+}
+
+void FlowConnection::attach(){
+    if (m_from) m_from->addConnection(this);
+    if (m_to)   m_to->addConnection(this);
+    updatePath();
 }

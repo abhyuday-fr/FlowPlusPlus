@@ -8,6 +8,10 @@
 #include <QEnterEvent>
 #include <QResizeEvent>
 
+#ifdef Q_OS_WIN
+#include <QOpenGLWidget>   // needs Qt6::OpenGLWidgets module
+#endif
+
 FlowView::FlowView(FlowScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent),
     m_flowScene(scene)
@@ -21,6 +25,15 @@ FlowView::FlowView(FlowScene *scene, QWidget *parent)
     setFrameShape(QFrame::NoFrame);
     setFocusPolicy(Qt::StrongFocus);
     setRubberBandSelectionMode(Qt::IntersectsItemShape);
+
+    // for windows
+    #ifdef Q_OS_WIN
+        setViewport(new QOpenGLWidget());
+        setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+        setCacheMode(QGraphicsView::CacheBackground);
+    #else
+        setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
+    #endif
 }
 
 void FlowView::initMiniMap(FlowScene *scene)

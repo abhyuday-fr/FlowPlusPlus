@@ -17,18 +17,12 @@ class IONode;
 // Helpers
 //---------
 
-// serialize a single node to JSON (reused across commands)
-QJsonObject nodeToJson(FlowNode *node, int id = 0);
-
-// recreate a node from JSON and add to scene
-FlowNode* nodeFromJson(FlowScene *scene, const QJsonObject &obj);
-
 // place Node
 
 class PlaceNodeCommand : public QUndoCommand{
 public:
     PlaceNodeCommand(FlowScene    *scene,
-                     FlowNode     *node,   // already created + added
+                     FlowNode     *node,
                      QUndoCommand *parent = nullptr);
     ~PlaceNodeCommand() override;
 
@@ -38,17 +32,10 @@ public:
 private:
     FlowScene   *m_scene;
     FlowNode    *m_node;
-    QJsonObject  m_data;   // saved state for re-creation
-    bool         m_owned;  // true when undo has removed it from scene
+    bool         m_owned;  // true when removed from scene
 };
 
 // delete
-
-struct ConnectionData {
-    QJsonObject fromData;
-    QJsonObject toData;
-    bool        isYes;
-};
 
 class DeleteCommand : public QUndoCommand{
 public:
@@ -63,8 +50,9 @@ public:
 
 private:
     FlowScene              *m_scene;
-    QList<QJsonObject>      m_nodeData;   // serialized nodes
-    QList<ConnectionData>   m_connData;   // serialized connections
+    QList<FlowNode*>        m_nodes;
+    QList<FlowConnection*>  m_conns;
+    bool                    m_owned; // true when removed from scene
 };
 
 // move Node
@@ -105,9 +93,6 @@ public:
 private:
     FlowScene *m_scene;
     FlowConnection *m_conn;
-    QJsonObject m_fromData;
-    QJsonObject m_toData;
-    bool m_isYes;
     bool m_owned;
 };
 

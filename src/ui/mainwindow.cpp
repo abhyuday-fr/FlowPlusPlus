@@ -41,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_view->initMiniMap(m_scene);
 
     m_lastDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
+    m_scene->undoStack()->setClean();
 }
 
 MainWindow::~MainWindow() {
@@ -77,17 +79,10 @@ void MainWindow::setupMenuBar()
     setupSamplesMenu(fileMenu);
     fileMenu->addSeparator();
 
-    fileMenu->addSeparator();
     QAction *quitAct = new QAction("&Quit", this);
     quitAct->setShortcut(QKeySequence::Quit);
     connect(quitAct, &QAction::triggered, qApp, &QApplication::quit);
     fileMenu->addAction(quitAct);
-
-    QMenu *runMenu = menuBar()->addMenu("&Run");
-    QAction *execAct = new QAction("&Execute Flow", this);
-    execAct->setShortcut(QKeySequence("F5"));
-    runMenu->addAction(execAct);
-    connect(execAct, &QAction::triggered, this, &MainWindow::runFlow);
 
     QMenu *editMenu = menuBar()->addMenu("&Edit");
 

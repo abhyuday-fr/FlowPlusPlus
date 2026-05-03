@@ -53,7 +53,7 @@ public:
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
     void setError(bool error) { m_hasError = error; update();}
-    bool haserro() const{ return m_hasError;}
+    bool hasError() const{ return m_hasError;}
 
 protected:
     // subclasses define their own shape geometry
@@ -65,6 +65,7 @@ protected:
 
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
     NodeType             m_type;
     QString              m_label;
@@ -79,6 +80,7 @@ protected:
 
 private:
     QPointF m_posBeforeMove;
+    bool m_moving = false;
 };
 
 #endif

@@ -21,6 +21,7 @@ public:
     bool isYesConnection() const { return m_fromYesPort; }
 
     void detach();
+    void attach();
 
 private:
     FlowNode *m_from;

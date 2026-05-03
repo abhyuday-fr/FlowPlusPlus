@@ -8,7 +8,12 @@ set(FPP_VERSION "${FPP_VERSION_MAJOR}.${FPP_VERSION_MINOR}.${FPP_VERSION_PATCH}"
 
 project(FlowPlusPlus VERSION ${FPP_VERSION} LANGUAGES CXX)
 
+# Find Qt
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets)
+
+if(WIN32)
+    find_package(Qt6 REQUIRED COMPONENTS OpenGL OpenGLWidgets)
+endif()
 
 qt_standard_project_setup()
 
@@ -85,16 +90,25 @@ target_link_libraries(FlowPlusPlus PRIVATE
     Qt6::Widgets
 )
 
-# ── C++ standard ──────────────────────────────────────────
-target_compile_features(FlowPlusPlus PRIVATE cxx_std_17)
-
-# ── Platform-specific properties ──────────────────────────
+# Windows Specifics
 if(WIN32)
+    target_link_libraries(FlowPlusPlus PRIVATE 
+        Qt6::OpenGL 
+        Qt6::OpenGLWidgets
+    )
+    target_compile_definitions(FlowPlusPlus PRIVATE 
+        QT_OPENGL_DYNAMIC
+        QT_OPENGL_ES_2_ANGLE
+    )
     set_target_properties(FlowPlusPlus PROPERTIES
         WIN32_EXECUTABLE TRUE
     )
 endif()
 
+# ── C++ standard ──────────────────────────────────────────
+target_compile_features(FlowPlusPlus PRIVATE cxx_std_17)
+
+# ── Platform-specific properties ──────────────────────────
 if(APPLE)
     set_target_properties(FlowPlusPlus PROPERTIES
         MACOSX_BUNDLE TRUE
