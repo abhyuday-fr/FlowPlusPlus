@@ -4,8 +4,8 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setApplicationName("Flow++");
-    app.setApplicationVersion("0.1.0");
+    app.setApplicationName("FlowPlusPlus");
+    app.setApplicationVersion("1.0.4");
 
     MainWindow window;
     window.show();

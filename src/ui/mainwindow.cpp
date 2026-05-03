@@ -91,9 +91,8 @@ void MainWindow::setupMenuBar()
     editMenu->addAction(undoAct);
 
     QAction *redoAct = m_scene->undoStack()->createRedoAction(this, "&Redo");
-    QList<QKeySequence> redoShortcuts;
-    redoShortcuts << QKeySequence::Redo << QKeySequence("Ctrl+Y");
-    redoAct->setShortcuts(redoShortcuts);
+    redoAct->setShortcuts({QKeySequence("Ctrl+Shift+Z"), QKeySequence("Ctrl+Y")});
+    redoAct->setToolTip("Redo (Ctrl+Y or Ctrl+Shift+Z)");
     editMenu->addAction(redoAct);
 }
 
