@@ -1,43 +1,38 @@
-/* ── Google Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=Geist+Mono:wght@300;400;500&display=swap');
+/* ── Google Fonts ──────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=Geist+Mono:wght@300;400;500&display=swap');
 
-/* ── C++ Brand Palette ── */
+/* ── C++ Brand Palette ─────────────────────────────────── */
 :root {
-  --bg:           #080d14;
-  --grid:         rgba(0, 84, 166, 0.08);
-  --node-bg:      #0c1420;
-  --node-border:  #1e2a3a;
+  --bg:          #080d14;
+  --grid:        rgba(0, 84, 166, 0.07);
+  --node-bg:     #0c1420;
+  --node-border: #1e2a3a;
 
-  --cpp-deep:     #003a8c;
-  --cpp-blue:     #0054A6;
-  --cpp-mid:      #0078D7;
-  --cpp-light:    #00A3FF;
-  --cpp-glow:     rgba(0, 84, 166, 0.4);
+  --cpp-deep:    #003a8c;
+  --cpp-blue:    #0054A6;
+  --cpp-mid:     #0078D7;
+  --cpp-light:   #00A3FF;
 
-  --green:        #238636;
-  --green-light:  #3fb950;
+  --green:       #238636;
+  --green-light: #3fb950;
 
-  --text:         #c9d1d9;
-  --text-dim:     #4a5568;
-  --text-bright:  #e6edf3;
+  --text:        #c9d1d9;
+  --text-dim:    #4a5568;
+  --text-bright: #e6edf3;
 
-  --line:         #0078D7;
+  /* The line color matches C++ mid blue */
+  --line-color:  #0078D7;
 
-  /* Fonts */
   --font-display: 'Syne', sans-serif;
   --font-mono:    'Space Mono', monospace;
   --font-ui:      'Geist Mono', monospace;
 }
 
-/* ── Reset ── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
-  background-color: var(--bg);
+  background: var(--bg);
   color: var(--text);
   overflow-x: hidden;
   scroll-behavior: smooth;
@@ -48,20 +43,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Grid Background ── */
+/* ── Dot grid background ───────────────────────────────── */
 .canvas-bg {
   position: fixed;
   inset: 0;
-  background-image:
-    radial-gradient(var(--grid) 1px, transparent 1px);
+  background-image: radial-gradient(var(--grid) 1px, transparent 1px);
   background-size: 36px 36px;
   z-index: -1;
-  /* Subtle vignette */
   mask-image: radial-gradient(ellipse 80% 80% at 50% 50%,
     black 40%, transparent 100%);
 }
 
-/* ── Container ── */
+/* ── Page layout ───────────────────────────────────────── */
 .flow-container {
   display: flex;
   flex-direction: column;
@@ -71,18 +64,55 @@ body {
   position: relative;
 }
 
-/* ── SVG Line ── */
-.svg-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 5;
+/* ── The animated flow line ────────────────────────────── */
+.line-segment {
+  width: 3px;
+  height: 260px;
+  position: relative;
+  margin: 0 auto;
+  z-index: 2;
 }
 
-/* ── Nodes ── */
+.flow-line-inner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--cpp-light) 0%,
+    var(--cpp-mid)   50%,
+    var(--cpp-blue)  100%
+  );
+  border-radius: 2px;
+  box-shadow:
+    0 0 8px  var(--cpp-mid),
+    0 0 20px rgba(0, 120, 215, 0.4);
+  transform-origin: top center;
+}
+
+.branch-container {
+  width: 100%;
+  max-width: 1008px;
+  height: 260px;
+  position: relative;
+  z-index: 2;
+  margin: 0 auto;
+}
+
+.branch-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.branch-path {
+  fill: none;
+  stroke: var(--cpp-mid);
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px var(--cpp-mid));
+}
+
+/* ── Nodes (shared) ────────────────────────────────────── */
 .node {
   background: var(--node-bg);
   border: 1.5px solid var(--node-border);
@@ -91,10 +121,14 @@ body {
   z-index: 10;
   min-width: 340px;
   text-align: center;
-  transition: border-color 0.5s, box-shadow 0.5s;
+  transition: z-index 0s;
 }
 
-/* Port dots — top and bottom */
+.node:hover {
+  z-index: 100;
+}
+
+/* Port dots */
 .node::before,
 .node::after {
   content: '';
@@ -104,44 +138,47 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  border: 2px solid var(--cpp-mid);
-  background: var(--bg);
   z-index: 20;
 }
 
-.node::before { top:    -6px; }
-.node::after  { bottom: -6px; background: var(--cpp-mid); }
+/* Input port — top (blue) */
+.node::before {
+  top: -6px;
+  border: 2px solid var(--cpp-mid);
+  background: var(--bg);
+}
 
-/* ── Start / End nodes ── */
+/* Output port — bottom (filled blue) */
+.node::after {
+  bottom: -6px;
+  background: var(--cpp-mid);
+  border: 2px solid var(--cpp-mid);
+}
+
+/* ── Start / End node ──────────────────────────────────── */
 .node-start {
   border-radius: 80px;
   padding: 52px 80px;
 }
 
-.node-start::before,
-.node-start::after {
-  border-color: var(--green);
-}
-.node-start::after {
-  background: var(--green);
-}
+.node-start::before { border-color: var(--green); background: var(--bg); }
+.node-start::after  { background: var(--green); border-color: var(--green); }
 
 .node-end {
   padding: 44px 100px;
   margin-bottom: 0 !important;
 }
 
-.node-end::after {
-  display: none; /* No output port on End */
-}
+/* End has no output port */
+.node-end::after { display: none; }
 
-/* ── Process node ── */
+/* ── Process node ──────────────────────────────────────── */
 .node-process {
   border-radius: 8px;
   max-width: 600px;
 }
 
-/* ── Decision node ── */
+/* ── Decision node ─────────────────────────────────────── */
 .node-decision {
   width: 280px;
   height: 280px;
@@ -153,26 +190,24 @@ body {
   border-radius: 0;
 }
 
-/* Ports don't make sense clipped, hide them */
+/* Ports don't render well clipped */
 .node-decision::before,
-.node-decision::after {
-  display: none;
-}
+.node-decision::after { display: none; }
 
-/* ── Download row ── */
+/* ── Download cards ────────────────────────────────────── */
 .download-row {
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1008px;
   z-index: 10;
 }
 
 .node-download {
   flex: 1;
-  min-width: 280px;
+  min-width: 260px;
   max-width: 320px;
   border-radius: 8px;
   padding: 48px 32px;
@@ -183,26 +218,25 @@ body {
   margin-bottom: 0 !important;
 }
 
-/* ── Node tag label ── */
+/* ── Typography ────────────────────────────────────────── */
 .node-tag {
   font-family: var(--font-ui);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 500;
   letter-spacing: 0.2em;
   color: var(--cpp-light);
-  opacity: 0.6;
-  margin-bottom: 8px;
+  opacity: 0.55;
   text-transform: uppercase;
+  margin-bottom: 6px;
 }
 
-/* ── Logo badge ── */
 .logo-badge {
   font-family: var(--font-mono);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--cpp-light);
   background: rgba(0, 84, 166, 0.15);
-  border: 1px solid rgba(0, 120, 215, 0.4);
+  border: 1px solid rgba(0, 120, 215, 0.35);
   border-radius: 6px;
   padding: 4px 14px;
   display: inline-block;
@@ -210,14 +244,16 @@ body {
   letter-spacing: 0.05em;
 }
 
-/* ── Hero text ── */
 .hero-text {
   font-family: var(--font-display);
-  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-size: clamp(2.6rem, 6vw, 4.8rem);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.05;
-  background: linear-gradient(135deg, var(--cpp-light) 0%, var(--cpp-mid) 50%, var(--cpp-blue) 100%);
+  background: linear-gradient(135deg,
+    var(--cpp-light) 0%,
+    var(--cpp-mid)   50%,
+    var(--cpp-blue)  100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -226,53 +262,49 @@ body {
 
 .hero-sub {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: var(--text-bright);
-  margin-bottom: 12px;
-  letter-spacing: 0.01em;
+  margin-bottom: 10px;
 }
 
 .hero-desc {
   font-family: var(--font-ui);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-dim);
   max-width: 380px;
   margin: 0 auto;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
-/* ── Node headings ── */
 .node h2 {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.55rem;
   font-weight: 700;
   color: var(--text-bright);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   letter-spacing: -0.02em;
 }
 
 .node h3 {
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-bright);
-  letter-spacing: -0.01em;
 }
 
 .node p {
   font-family: var(--font-ui);
-  font-size: 0.88rem;
+  font-size: 0.87rem;
   color: var(--text-dim);
   line-height: 1.8;
   max-width: 460px;
   margin: 0 auto;
 }
 
-/* ── End text ── */
 .end-text {
   font-family: var(--font-display);
-  font-size: 2.8rem;
+  font-size: 2.6rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   background: linear-gradient(135deg, var(--green-light), var(--green));
@@ -282,46 +314,71 @@ body {
   margin-bottom: 8px;
 }
 
-/* ── Buttons ── */
+/* ── Buttons ────────────────────────────────────────────── */
 .btn-group {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
-  margin-top: 24px;
+  margin-top: 22px;
   flex-wrap: wrap;
 }
 
 .btn {
   font-family: var(--font-ui);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  padding: 10px 18px;
+  padding: 9px 16px;
   border-radius: 6px;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  transition: opacity 0.2s, transform 0.2s;
+  transition: opacity 0.18s, transform 0.18s;
   letter-spacing: 0.02em;
   margin-top: 8px;
 }
 
-.btn:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
+.btn:hover { opacity: 0.82; transform: translateY(-1px); }
+
+.btn-github  { background: rgba(255,255,255,0.05); color: var(--text-bright); border: 1px solid var(--node-border); }
+.btn-linux   { background: #d4a017; color: #000; }
+.btn-windows { background: #0078d4; color: #fff; }
+.btn-macos   { background: #e8e8e8; color: #000; }
+
+/* ── Tooltip ────────────────────────────────────────────── */
+.tooltip {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 40px);
+  transform: translateY(-50%);
+  background: #0d1b2a;
+  border: 1px solid var(--cpp-mid);
+  border-radius: 8px;
+  padding: 18px 22px;
+  width: 320px;
+  text-align: left;
+  z-index: 200;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.8), 0 0 20px rgba(0,84,166,0.25);
+  pointer-events: none;
 }
 
-.btn-github {
-  background: rgba(255,255,255,0.05);
-  color: var(--text-bright);
-  border: 1px solid var(--node-border);
+.tooltip-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--cpp-light);
+  margin-bottom: 8px;
+  letter-spacing: 0.01em;
 }
 
-.btn-linux  { background: #d4a017; color: #000; border: none; }
-.btn-windows{ background: #0078d4; color: #fff; border: none; }
-.btn-macos  { background: #e8e8e8; color: #000; border: none; }
+.tooltip-body {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.75;
+}
 
-/* ── Footer ── */
+/* ── Footer ─────────────────────────────────────────────── */
 footer {
   margin-top: 120px;
   padding-bottom: 60px;
@@ -330,30 +387,53 @@ footer {
 
 footer p {
   font-family: var(--font-ui);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-dim);
-  line-height: 2;
+  line-height: 2.2;
 }
 
-.footer-sub {
-  font-size: 0.72rem !important;
-  opacity: 0.5;
+.footer-sub { opacity: 0.45; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .tooltip {
+    left: 50%;
+    top: calc(100% + 24px);
+    transform: translateX(-50%);
+    width: min(90vw, 320px);
+  }
+
+  /* Simplify branches on mobile to a straight line */
+  .branch-svg {
+    display: none;
+  }
+  .branch-container {
+    width: 3px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .branch-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--cpp-mid);
+    box-shadow: 0 0 8px var(--cpp-mid);
+    /* We can't easily sync the scroll progress here without more JS, 
+       so we just show the line or we could use another FlowLineSegment */
+  }
 }
 
-/* ── Responsive ── */
 @media (max-width: 768px) {
   .node {
-    min-width: min(90vw, 340px);
-    padding: 36px 28px;
+    min-width: min(88vw, 340px);
+    padding: 32px 24px;
   }
 
-  .node-start {
-    padding: 40px 40px;
-  }
+  .node-start { padding: 38px 36px; }
 
-  .hero-text {
-    font-size: 2.4rem;
-  }
+  .hero-text { font-size: 2.2rem; }
 
   .download-row {
     flex-direction: column;
@@ -364,4 +444,10 @@ footer p {
     max-width: 100%;
     width: 100%;
   }
+
+  .tooltip {
+    font-size: 0.74rem;
+  }
+
+  .line-track { left: 50%; }
 }
