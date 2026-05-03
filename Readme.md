@@ -13,10 +13,7 @@ A visual flowchart interpreter built with **C++17** and **Qt 6**, loosely follow
 
 ---
 
-<p align="center">
-  <video src="https://raw.githubusercontent.com/abhyuday-fr/FlowPlusPlus/main/demo-video/demo.mp4" width="100%" controls="controls" muted="muted" style="max-width:100%;">
-  </video>
-</p>
+![demo_video](https://github.com/user-attachments/assets/9774ea53-acb2-4680-83e7-3f5ee1a117b8)
 
 ## What is this?
 
