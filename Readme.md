@@ -13,6 +13,12 @@ A visual flowchart interpreter built with **C++17** and **Qt 6**, loosely follow
 
 ---
 
+<div align="center">
+  <video src="demo%20video/demo.mp4" width="100%" controls>
+    Your browser does not support the video tag.
+  </video>
+</div>
+
 ## What is this?
 
 FlowPlusPlus lets you build programs visually, drag nodes onto a canvas, connect them with arrows, and hit **Run**. The interpreter walks the graph and executes your logic, node by node.
