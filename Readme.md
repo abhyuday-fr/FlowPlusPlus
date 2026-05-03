@@ -2,6 +2,8 @@
 
 > *Because sometimes, you just want to think in boxes and arrows to be out of the box.*
 
+![FPP-logo](packaging/FlowPlusPlus.png)
+
 A visual flowchart interpreter built with **C++17** and **Qt 6**, loosely following the spirit of [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom except instead of typing code, you draw it.
 
 ![License](https://img.shields.io/github/license/abhyuday-fr/FlowPlusPlus)
