@@ -13,8 +13,6 @@ A visual flowchart interpreter built with **C++17** and **Qt 6**, loosely follow
 
 ---
 
-![demo_video](https://github.com/user-attachments/assets/9774ea53-acb2-4680-83e7-3f5ee1a117b8)
-
 ## What is this?
 
 FlowPlusPlus lets you build programs visually, drag nodes onto a canvas, connect them with arrows, and hit **Run**. The interpreter walks the graph and executes your logic, node by node.
