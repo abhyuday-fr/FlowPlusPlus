@@ -13,11 +13,7 @@ A visual flowchart interpreter built with **C++17** and **Qt 6**, loosely follow
 
 ---
 
-<p align="center">
-  <video src="https://github.com/abhyuday-fr/FlowPlusPlus/raw/main/demo-video/demo.mp4" width="100%" controls>
-    Your browser does not support the video tag.
-  </video>
-</p>
+![Demo Video](demo-video/demo.mp4)
 
 ## What is this?
 
